@@ -18,7 +18,7 @@ public class TaskController {
 
     @Autowired
     public TaskService taskService;
-    @PostMapping("/")
+    @PostMapping
     ResponseEntity<Task> createTask(@RequestBody TaskRequestDTO taskRequest) {
         System.out.println(taskRequest);
         Task createdTask = taskService.createTask(taskRequest);

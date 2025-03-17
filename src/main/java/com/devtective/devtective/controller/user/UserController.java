@@ -19,13 +19,6 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-    @PostMapping
-    public ResponseEntity<AppUser> createUser(@RequestBody UserRequestDTO data) {
-        System.out.println(data);
-        AppUser user = userService.createUser(data);
-        return ResponseEntity.ok(user);
-    }
-
     @GetMapping
     public ResponseEntity<List<UserResponseDTO>> getAllUsers() {
         List<AppUser> users = userService.getAllUsers();

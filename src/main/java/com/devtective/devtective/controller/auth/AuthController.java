@@ -1,14 +1,20 @@
 package com.devtective.devtective.controller.auth;
 
+import com.devtective.devtective.dominio.auth.LoginResponseDTO;
 import com.devtective.devtective.dominio.user.AppUser;
 import com.devtective.devtective.dominio.user.UserRequestDTO;
 import com.devtective.devtective.security.TokenService;
+import com.devtective.devtective.service.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.Duration;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -19,19 +25,39 @@ public class AuthController {
 
     @Autowired
     private TokenService tokenService;
+
+    @Autowired
+    private UserService userService;
+
     @GetMapping("/login")
     ResponseEntity<String> testRoute() {
         return ResponseEntity.ok("Test completed");
     }
 
     @PostMapping("/login")
-    ResponseEntity<String> login(@RequestBody UserRequestDTO user) {
+    ResponseEntity<LoginResponseDTO> login(@RequestBody UserRequestDTO user) {
 
         UsernamePasswordAuthenticationToken usernamePassword = new UsernamePasswordAuthenticationToken(user.username(), user.password());
 
         Authentication auth = this.authenticationManager.authenticate(usernamePassword);
 
         String token = tokenService.generateToken((AppUser) auth.getPrincipal());
-        return ResponseEntity.ok().build();
+        ResponseCookie cookie = ResponseCookie.from("jwt", token)
+                .httpOnly(true)
+                .secure(true)  // Set to false for local development
+                .path("/")
+                .maxAge(Duration.ofDays(7))
+                .build();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .body(new LoginResponseDTO("Login successful"));
+        //return ResponseEntity.ok(new LoginResponseDTO(token));
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<AppUser> createUser(@RequestBody UserRequestDTO data) {
+        AppUser user = userService.createUser(data);
+        return ResponseEntity.ok(user);
     }
 }

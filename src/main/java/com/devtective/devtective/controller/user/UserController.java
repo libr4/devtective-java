@@ -27,6 +27,28 @@ public class UserController {
         return ResponseEntity.ok(usersResponse);
     }
 
+    @GetMapping("{username}")
+    public ResponseEntity<UserResponseDTO> getUser(@PathVariable String username) {
+        AppUser user = userService.findByUsername(username);
+        UserResponseDTO response = new UserResponseDTO(user.getUsername(), user.getEmail(), user.getRole().getId());
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping
+    public ResponseEntity<UserResponseDTO> updateUser(@RequestBody UserRequestDTO user) {
+        AppUser newUser = userService.updateUser(user);
+        UserResponseDTO response = new UserResponseDTO(newUser.getUsername(), newUser.getEmail(), newUser.getRole().getId());
+        return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("{username}")
+    public ResponseEntity<String> deleteUser(@PathVariable String username) {
+        userService.deleteByUsername(username);
+        String response = "User removed successfully";
+        return ResponseEntity.ok(response);
+    }
+
+
     private List<UserResponseDTO> convertToDTOList(List<AppUser> users) {
         return users.stream()
                 .map(user -> new UserResponseDTO(user.getUsername(), user.getEmail(), user.getRole().getId()))

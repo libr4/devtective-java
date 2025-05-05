@@ -1,15 +1,14 @@
-package com.devtective.devtective.service.user;
+package com.devtective.devtective.service.worker;
 
-import com.devtective.devtective.dominio.project.Project;
 import com.devtective.devtective.dominio.user.AppUser;
 import com.devtective.devtective.dominio.user.Role;
 import com.devtective.devtective.dominio.user.RoleConstants;
 import com.devtective.devtective.dominio.user.UserRequestDTO;
 import com.devtective.devtective.dominio.worker.Worker;
-import com.devtective.devtective.repository.ProjectRepository;
 import com.devtective.devtective.repository.UserRepository;
 import com.devtective.devtective.repository.WorkerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -17,14 +16,12 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
-public class UserService {
+public class WorkerService {
 
     @Autowired
-    private ProjectRepository projectRepository;
+    private UserRepository repository;
     @Autowired
     private WorkerRepository workerRepository;
-    @Autowired
-    private UserRepository repository;
 
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
@@ -76,23 +73,4 @@ public class UserService {
         return repository.save(user);
     }
 
-    public void deleteByUsername(String username) {
-        AppUser user = findByUsername(username);
-
-        if (user == null) {
-            throw new UsernameNotFoundException("User not found: " + username);
-        }
-
-        Worker worker = workerRepository.findByUserId(user);
-
-        if (worker != null) {
-            List<Project> workerProjects = projectRepository.findByCreatedBy(worker);
-            if (!workerProjects.isEmpty()) {
-                projectRepository.deleteAll(workerProjects);
-            }
-            workerRepository.delete(worker);
-        }
-
-        repository.delete(user);
-    }
 }

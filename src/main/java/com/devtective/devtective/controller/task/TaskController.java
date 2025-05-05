@@ -2,14 +2,17 @@ package com.devtective.devtective.controller.task;
 
 import com.devtective.devtective.dominio.task.Task;
 import com.devtective.devtective.dominio.task.TaskRequestDTO;
+import com.devtective.devtective.dominio.task.TaskResponseDTO;
+import com.devtective.devtective.dominio.user.AppUser;
+import com.devtective.devtective.dominio.user.UserResponseDTO;
 import com.devtective.devtective.repository.TaskRepository;
 import com.devtective.devtective.service.task.TaskService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/tasks")
@@ -18,12 +21,27 @@ public class TaskController {
 
     @Autowired
     public TaskService taskService;
+    @GetMapping
+    ResponseEntity<Task> getAllTasks(@RequestBody TaskRequestDTO taskRequest) {
+        System.out.println(taskRequest);
+        Task createdTask = taskService.createTask(taskRequest);
+        System.out.println(createdTask);
+        return ResponseEntity.ok(createdTask);
+    }
     @PostMapping
     ResponseEntity<Task> createTask(@RequestBody TaskRequestDTO taskRequest) {
         System.out.println(taskRequest);
         Task createdTask = taskService.createTask(taskRequest);
         System.out.println(createdTask);
         return ResponseEntity.ok(createdTask);
+    }
+
+    private List<TaskResponseDTO> convertToDTOList(List<Task> tasks) {
+        return tasks.stream()
+                .map(task -> new TaskResponseDTO(task.getTitle(), task.getDescription(), task.getTaskStatus().getTaskStatusId(), task.getTaskPriority().getName(),
+                        task.getTaskType().getName(), task.getProject().getName(), task.getTechnology(),
+                        task.getAssignedTo().getFirstName(), task.getCreatedBy().getFirstName(), task.getDeadline()))
+                .collect(Collectors.toList());
     }
 
 }

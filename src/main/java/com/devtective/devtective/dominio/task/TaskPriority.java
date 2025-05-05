@@ -8,7 +8,7 @@ public class TaskPriority {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "task_priority_id")
-    private Long taskPriorityId;
+    private Long id;
 
     @Column(name = "name", nullable = false, length = 50)
     private String name;
@@ -20,12 +20,12 @@ public class TaskPriority {
         this.name = name;
     }
 
-    public Long getTaskPriorityId() {
-        return taskPriorityId;
+    public Long getId() {
+        return id;
     }
 
     public void setTaskPriorityId(Long taskPriorityId) {
-        this.taskPriorityId = taskPriorityId;
+        this.id = taskPriorityId;
     }
 
     public String getName() {

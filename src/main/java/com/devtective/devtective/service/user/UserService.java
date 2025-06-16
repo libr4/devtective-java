@@ -6,6 +6,7 @@ import com.devtective.devtective.dominio.user.Role;
 import com.devtective.devtective.dominio.user.RoleConstants;
 import com.devtective.devtective.dominio.user.UserRequestDTO;
 import com.devtective.devtective.dominio.worker.Worker;
+import com.devtective.devtective.exception.NotFoundException;
 import com.devtective.devtective.repository.ProjectRepository;
 import com.devtective.devtective.repository.UserRepository;
 import com.devtective.devtective.repository.WorkerRepository;
@@ -60,7 +61,7 @@ public class UserService {
         AppUser user = findByUsername(data.username());
 
         if (user == null) {
-            throw new UsernameNotFoundException("User not found: " + data.username());
+            throw new NotFoundException("User not found: " + data.username());
         }
 
         user.setUsername(data.username());
@@ -80,7 +81,7 @@ public class UserService {
         AppUser user = findByUsername(username);
 
         if (user == null) {
-            throw new UsernameNotFoundException("User not found: " + username);
+            throw new NotFoundException("User not found: " + username);
         }
 
         Worker worker = workerRepository.findByUserId(user);

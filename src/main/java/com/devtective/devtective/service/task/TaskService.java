@@ -2,6 +2,7 @@ package com.devtective.devtective.service.task;
 
 import com.devtective.devtective.dominio.project.Project;
 import com.devtective.devtective.dominio.task.*;
+import com.devtective.devtective.exception.NotFoundException;
 import com.devtective.devtective.repository.ProjectRepository;
 import com.devtective.devtective.repository.TaskRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -70,11 +71,11 @@ public class TaskService {
     }
 
     public void deleteByProjectIdAndTaskNumber(Long projectId, Long taskNumber) {
-        Project project = projectRepository.findById(projectId).orElseThrow(() -> new EntityNotFoundException("Project with ID: " + projectId + " not found"));
+        Project project = projectRepository.findById(projectId).orElseThrow(() -> new NotFoundException("Project with ID: " + projectId + " not found"));
 
         Task task =  repository.findByProjectAndTaskNumber(project, taskNumber);
         if (task == null)  {
-            throw new EntityNotFoundException("Task wih number: " + taskNumber + " not found");
+            throw new NotFoundException("Task wih number: " + taskNumber + " not found");
 
         }
         repository.delete(task);

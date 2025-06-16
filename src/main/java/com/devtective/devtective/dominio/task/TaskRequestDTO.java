@@ -12,5 +12,7 @@ public record TaskRequestDTO(
         String technology,
         Long assignedToId,
         Long createdById,
-        LocalDate deadline
+        LocalDate deadline,
+
+        Long taskNumber
 ) {}

@@ -57,6 +57,10 @@ public class Task {
     @Column(name = "deadline",  columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     private LocalDate deadline;
 
+
+    @Column(name = "task_number")
+    private Long taskNumber;
+
     public Long getId() {
         return id;
     }
@@ -159,5 +163,12 @@ public class Task {
 
     public void setDeadline(LocalDate deadline) {
         this.deadline = deadline;
+    }
+    public Long getTaskNumber() {
+        return taskNumber;
+    }
+
+    public void setTaskNumber(Long taskNumber) {
+        this.taskNumber = taskNumber;
     }
 }

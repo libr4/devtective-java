@@ -6,6 +6,7 @@ import com.devtective.devtective.dominio.user.Role;
 import com.devtective.devtective.dominio.user.RoleConstants;
 import com.devtective.devtective.dominio.user.UserRequestDTO;
 import com.devtective.devtective.dominio.worker.Worker;
+import com.devtective.devtective.exception.ConflictException;
 import com.devtective.devtective.exception.NotFoundException;
 import com.devtective.devtective.repository.ProjectRepository;
 import com.devtective.devtective.repository.UserRepository;
@@ -30,6 +31,12 @@ public class UserService {
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
     public AppUser createUser(UserRequestDTO data) {
+
+        AppUser userExists = repository.findByUsername(data.username());
+        if (userExists != null) {
+            throw new ConflictException("Username already exists: " + data.username());
+        }
+
         AppUser user = new AppUser();
 
         user.setUsername(data.username());
@@ -79,6 +86,7 @@ public class UserService {
 
     public void deleteByUsername(String username) {
         AppUser user = findByUsername(username);
+        System.out.println("ABOUT TO DELETE: " + username);
 
         if (user == null) {
             throw new NotFoundException("User not found: " + username);

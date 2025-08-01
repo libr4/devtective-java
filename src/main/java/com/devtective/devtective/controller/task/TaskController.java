@@ -41,7 +41,7 @@ public class TaskController {
 
     @GetMapping("{projectId}/{taskNumber:[0-9]+}")
     public ResponseEntity<TaskResponseDTO> getTask(@PathVariable Long projectId, @PathVariable Long taskNumber) {
-        Project project = projectService.getProject(projectId);
+        Project project = projectService.getProjectById(projectId);
         Task task = taskService.findTask(project, taskNumber);
         TaskResponseDTO response = convertToDTO(task);
         return ResponseEntity.ok(response);
@@ -49,7 +49,7 @@ public class TaskController {
 
     @PutMapping
     public ResponseEntity<TaskResponseDTO> updateTask(@RequestBody TaskRequestDTO taskRequest) {
-        Project project = projectService.getProject(taskRequest.projectId());
+        Project project = projectService.getProjectById(taskRequest.projectId());
         Task updatedTask = taskService.updateTask(taskRequest);
         TaskResponseDTO response = convertToDTO(updatedTask);
         return ResponseEntity.ok(response);

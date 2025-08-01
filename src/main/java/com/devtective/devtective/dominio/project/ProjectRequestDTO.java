@@ -2,12 +2,12 @@ package com.devtective.devtective.dominio.project;
 
 import java.time.LocalDate;
 
-public record ProjectResponseDTO(
+public record ProjectRequestDTO(
         Long id,
         String name,
         String description,
         String url,
         LocalDate startDate,
         LocalDate endDate,
-        String createdByName
+        Long createdById
 ) {}

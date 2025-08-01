@@ -49,9 +49,12 @@ public class AuthController {
                 .maxAge(Duration.ofDays(7))
                 .build();
 
+        AppUser loggedUser = userService.findByUsername(user.username());
+        LoginResponseDTO response = new LoginResponseDTO("Login successful", loggedUser.getUsername(), loggedUser.getUserId());
+
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
-                .body(new LoginResponseDTO("Login successful"));
+                .body(response);
         //return ResponseEntity.ok(new LoginResponseDTO(token));
     }
 

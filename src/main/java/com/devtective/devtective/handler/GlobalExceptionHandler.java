@@ -1,5 +1,6 @@
 package com.devtective.devtective.handler;
 
+import com.devtective.devtective.exception.ConflictException;
 import com.devtective.devtective.exception.NotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +16,18 @@ import java.util.Map;
  * */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(ConflictException.class)
+    public ResponseEntity<Object> handleConflictException(ConflictException ex) {
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(Map.of(
+                        "error", "Conflict",
+                        "message", ex.getMessage(),
+                        "status", HttpStatus.CONFLICT.value(),
+                        "timestamp", LocalDateTime.now()
+                ));
+    }
 
     @ExceptionHandler(NotFoundException.class)
     public ResponseEntity<Map<String, Object>> handleNotFoundException(NotFoundException ex) {

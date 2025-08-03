@@ -2,9 +2,9 @@ package com.devtective.devtective.service.task;
 
 import com.devtective.devtective.dominio.project.Project;
 import com.devtective.devtective.dominio.task.*;
+import com.devtective.devtective.dominio.worker.Worker;
 import com.devtective.devtective.exception.NotFoundException;
-import com.devtective.devtective.repository.ProjectRepository;
-import com.devtective.devtective.repository.TaskRepository;
+import com.devtective.devtective.repository.*;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -20,6 +20,15 @@ public class TaskService {
     TaskRepository repository;
     @Autowired
     ProjectRepository projectRepository;
+    @Autowired
+    WorkerRepository workerRepository;
+    @Autowired
+    TaskPriorityRepository taskPriorityRepository;
+    @Autowired
+    TaskStatusRepository taskStatusRepository;
+    @Autowired
+    TaskTypeRepository taskTypeRepository;
+
     public Task createTask(TaskRequestDTO task) {
         Task newTask = new Task();
 
@@ -30,6 +39,30 @@ public class TaskService {
 
         newTask.setCreatedAt(LocalDateTime.now());
         newTask.setUpdatedAt(LocalDateTime.now());
+
+        Project project = projectRepository.findById(task.projectId())
+                .orElseThrow(() -> new NotFoundException("Project with ID: " + task.projectId() + " not found"));
+        newTask.setProject(project);
+
+        Worker createdBy = workerRepository.findById(task.createdById())
+                .orElseThrow(() -> new NotFoundException("Worker (creator) with ID: " + task.createdById() + " not found"));
+        newTask.setCreatedBy(createdBy);
+
+        Worker assignedTo = workerRepository.findById(task.assignedToId())
+                .orElseThrow(() -> new NotFoundException("Worker with ID: " + task.assignedToId() + " not found"));
+        newTask.setAssignedTo(assignedTo);
+
+        TaskPriority priority = taskPriorityRepository.findById(task.taskPriorityId())
+                .orElseThrow(() -> new NotFoundException("Task Priority with ID: " + task.taskPriorityId() + " not found"));
+        newTask.setTaskPriority(priority);
+
+        TaskStatus status = taskStatusRepository.findById(task.taskStatusId())
+                .orElseThrow(() -> new NotFoundException("Task Status with ID: " + task.taskStatusId() + " not found"));
+        newTask.setTaskStatus(status);
+
+        TaskType type = taskTypeRepository.findById(task.taskTypeId())
+                .orElseThrow(() -> new NotFoundException("Task Type with ID: " + task.taskTypeId() + " not found"));
+        newTask.setTaskType(type);
 
         if (task.taskStatusId() != null) {
         }
@@ -50,6 +83,12 @@ public class TaskService {
         }
 
         return repository.save(newTask);
+    }
+
+    public TaskResponseDTO createTaskResponseDTO(TaskRequestDTO dto) {
+        Task task = createTask(dto);
+        return convertToDTO(task);
+
     }
 
     public Task updateTask(TaskRequestDTO taskRequestDTO) {

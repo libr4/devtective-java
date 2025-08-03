@@ -32,10 +32,8 @@ public class TaskController {
         return ResponseEntity.ok(allTasks);
     }
     @PostMapping
-    ResponseEntity<Task> createTask(@RequestBody TaskRequestDTO taskRequest) {
-        System.out.println(taskRequest);
-        Task createdTask = taskService.createTask(taskRequest);
-        System.out.println(createdTask);
+    ResponseEntity<TaskResponseDTO> createTask(@RequestBody TaskRequestDTO taskRequest) {
+        TaskResponseDTO createdTask = taskService.createTaskResponseDTO(taskRequest);
         return ResponseEntity.ok(createdTask);
     }
 

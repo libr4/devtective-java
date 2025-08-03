@@ -1,11 +1,19 @@
 package com.devtective.devtective.controller.task;
 
 import com.devtective.devtective.dominio.project.Project;
+import com.devtective.devtective.dominio.project.ProjectRequestDTO;
+import com.devtective.devtective.dominio.project.ProjectResponseDTO;
 import com.devtective.devtective.dominio.task.TaskRequestDTO;
 import com.devtective.devtective.dominio.user.UserRequestDTO;
+import com.devtective.devtective.dominio.worker.Worker;
+import com.devtective.devtective.dominio.worker.WorkerRequestDTO;
+import com.devtective.devtective.dominio.worker.WorkerResponseDTO;
 import com.devtective.devtective.repository.ProjectRepository;
 import com.devtective.devtective.repository.TaskRepository;
 import com.devtective.devtective.repository.UserRepository;
+import com.devtective.devtective.repository.WorkerRepository;
+import com.devtective.devtective.service.project.ProjectService;
+import com.devtective.devtective.service.worker.WorkerService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.Cookie;
@@ -17,6 +25,7 @@ import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.Random;
@@ -28,20 +37,29 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@Transactional
 class TaskControllerIntegrationTest {
 
     @Autowired private MockMvc mockMvc;
     @Autowired private ObjectMapper objectMapper;
     @Autowired private UserRepository userRepository;
     @Autowired private ProjectRepository projectRepository;
+    @Autowired private ProjectService projectService;
     @Autowired private TaskRepository taskRepository;
+    @Autowired private WorkerRepository workerRepository;
+    @Autowired private WorkerService workerService;
 
     private Cookie jwtCookie;
     private Long projectId;
     private Long userId;
+    private Long taskId;
+    private Long workerId;
     private Long taskNumber;
 
-    private final String username = "test" + new Random().nextInt(1_000_000);
+    public long generateRandomNumer() {
+       return new Random().nextInt(1_000_000);
+    }
+    private final String username = "test" + generateRandomNumer();
     private final String email = username + "@example.com";
 
     @BeforeEach
@@ -65,31 +83,35 @@ class TaskControllerIntegrationTest {
         jwtCookie = response.getCookie("jwt");
 
         JsonNode loginJson = objectMapper.readTree(response.getContentAsString());
-        //userId = loginJson.get("userId").asLong();
+        userId = loginJson.get("userId").asLong();
 
-        // Create Project
-        String projectJson = "{\"name\": \"Project " + username + "\"}";
-        MvcResult projectResult = mockMvc.perform(post("/api/v1/projects")
-                        .cookie(jwtCookie)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(projectJson))
-                .andExpect(status().isOk())
-                .andReturn();
+        long posId = 1;
+        WorkerRequestDTO workerDTO = new WorkerRequestDTO(null, "Doctor", "Who", posId, userId);
+        WorkerResponseDTO workerResponse = workerService.createWorker(workerDTO);
+        workerId = workerResponse.id();
 
-        projectId = objectMapper.readTree(projectResult.getResponse().getContentAsString()).get("userId").asLong();
+        String projectName = "Project" + generateRandomNumer();
+        ProjectRequestDTO projectDto = new ProjectRequestDTO(projectId, projectName, "Initial description", "",
+                LocalDate.now(), LocalDate.now(), workerId);
+
+        ProjectResponseDTO project = projectService.createProject(projectDto);
+
+        projectId = project.id();
     }
 
     @AfterEach
     void cleanup() {
-        if (taskNumber != null) {
-            taskRepository.deleteByProjectIdAndTaskNumber(projectId, taskNumber);
-        }
         if (projectId != null) {
             projectRepository.deleteById(projectId);
         }
         if (username != null) {
-            //userRepository.deleteById(userId);
             userRepository.deleteByUsername(username);
+        }
+        if (workerId != null) {
+            workerRepository.deleteById(workerId);
+        }
+        if (taskNumber != null) {
+            taskRepository.deleteByProjectIdAndTaskNumber(projectId, taskNumber);
         }
     }
 
@@ -104,8 +126,8 @@ class TaskControllerIntegrationTest {
                 1L, // Type ID
                 projectId,
                 "Java",
-                userId,
-                userId,
+                workerId,
+                workerId,
                 LocalDate.now().plusDays(7),
                 null // taskNumber is null when creating
         );

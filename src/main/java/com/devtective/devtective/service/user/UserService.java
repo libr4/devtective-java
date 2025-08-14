@@ -60,7 +60,11 @@ public class UserService {
     }
 
     public AppUser findByUsername(String username) {
-        return repository.findByUsername(username);
+        AppUser user = repository.findByUsername(username);
+        if (user == null) {
+            throw new NotFoundException("User not found: " + username);
+        }
+        return user;
     }
 
     public AppUser updateUser(UserRequestDTO data) {
@@ -74,12 +78,12 @@ public class UserService {
         user.setUsername(data.username());
         user.setEmail(data.email());
 
-        String hashedPassword = passwordEncoder.encode(data.password());
-
         Role newRole = new Role(data.roleId());
         user.setRole(newRole);
-
-        user.setPasswordHash(hashedPassword);
+        if (data.password() != null && !data.password().isBlank()) {
+            String hashedPassword = passwordEncoder.encode(data.password());
+            user.setPasswordHash(hashedPassword);
+        }
 
         return repository.save(user);
     }

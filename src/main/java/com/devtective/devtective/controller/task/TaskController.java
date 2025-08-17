@@ -27,9 +27,9 @@ public class TaskController {
     @Autowired
     public ProjectService projectService;
     @GetMapping
-    ResponseEntity<List<Task>> getAllTasks() {
-        List<Task> allTasks = taskService.getAllTasks();
-        return ResponseEntity.ok(allTasks);
+    ResponseEntity<List<TaskResponseDTO>> getAllTasks() {
+        List<TaskResponseDTO> response = taskService.getAllTasksResponse();
+        return ResponseEntity.ok(response);
     }
     @PostMapping
     ResponseEntity<TaskResponseDTO> createTask(@RequestBody TaskRequestDTO taskRequest) {
@@ -40,16 +40,14 @@ public class TaskController {
     @GetMapping("{projectId}/{taskNumber:[0-9]+}")
     public ResponseEntity<TaskResponseDTO> getTask(@PathVariable Long projectId, @PathVariable Long taskNumber) {
         Project project = projectService.getProjectById(projectId);
-        Task task = taskService.findTask(project, taskNumber);
-        TaskResponseDTO response = convertToDTO(task);
+        TaskResponseDTO response = taskService.findTaskResponse(project, taskNumber);
         return ResponseEntity.ok(response);
     }
 
     @PutMapping
     public ResponseEntity<TaskResponseDTO> updateTask(@RequestBody TaskRequestDTO taskRequest) {
-        Project project = projectService.getProjectById(taskRequest.projectId());
-        Task updatedTask = taskService.updateTask(taskRequest);
-        TaskResponseDTO response = convertToDTO(updatedTask);
+        //Project project = projectService.getProjectById(taskRequest.projectId());
+        TaskResponseDTO response = taskService.updateTaskResponseDTO(taskRequest);
         return ResponseEntity.ok(response);
     }
 
@@ -58,7 +56,6 @@ public class TaskController {
         taskService.deleteByProjectIdAndTaskNumber(projectId, taskNumber);
         return ResponseEntity.noContent().build();
     }
-
 
     private List<TaskResponseDTO> convertToDTOList(List<Task> tasks) {
         return tasks.stream()
@@ -69,7 +66,7 @@ public class TaskController {
     private TaskResponseDTO convertToDTO(Task task) {
         TaskResponseDTO taskResponseDTO = new TaskResponseDTO(task.getTitle(), task.getDescription(), task.getTaskStatus().getName(), task.getTaskPriority().getName(),
                 task.getTaskType().getName(), task.getProject().getName(), task.getTechnology(),
-                task.getAssignedTo().getFirstName(), task.getCreatedBy().getFirstName(), task.getDeadline());
+                task.getAssignedTo().getFirstName(), task.getCreatedBy().getFirstName(), task.getDeadline(), task.getTaskNumber());
         return taskResponseDTO;
     }
 

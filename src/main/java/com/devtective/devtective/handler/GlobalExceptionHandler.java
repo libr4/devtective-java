@@ -12,7 +12,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * Handle system's global errors. Currently, deals only with generic and not found exceptions.
+ * Handle system's global errors.
  * */
 @RestControllerAdvice
 public class GlobalExceptionHandler {

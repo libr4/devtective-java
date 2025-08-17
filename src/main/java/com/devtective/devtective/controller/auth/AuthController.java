@@ -3,6 +3,7 @@ package com.devtective.devtective.controller.auth;
 import com.devtective.devtective.dominio.auth.LoginResponseDTO;
 import com.devtective.devtective.dominio.user.AppUser;
 import com.devtective.devtective.dominio.user.UserRequestDTO;
+import com.devtective.devtective.dominio.user.UserResponseDTO;
 import com.devtective.devtective.security.TokenService;
 import com.devtective.devtective.service.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,8 +60,8 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<AppUser> createUser(@RequestBody UserRequestDTO data) {
-        AppUser user = userService.createUser(data);
-        return ResponseEntity.ok(user);
+    public ResponseEntity<UserResponseDTO> createUser(@RequestBody UserRequestDTO data) {
+        UserResponseDTO response = userService.createUser(data);
+        return ResponseEntity.ok(response);
     }
 }

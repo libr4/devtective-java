@@ -1,9 +1,11 @@
 package com.devtective.devtective.dominio.user;
 
 import jakarta.persistence.*;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
@@ -56,9 +58,10 @@ public class AppUser implements UserDetails {
         this.userId = userId;
     }
 
+    //@Transactional(readOnly = true)
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority(this.role.getId().toString()));
+        return List.of(new SimpleGrantedAuthority("ROLE_" + this.role.getRoleName().toUpperCase()));
     }
 
     @Override

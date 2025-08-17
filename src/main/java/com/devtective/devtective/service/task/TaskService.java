@@ -8,6 +8,7 @@ import com.devtective.devtective.repository.*;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -44,6 +45,9 @@ public class TaskService {
                 .orElseThrow(() -> new NotFoundException("Project with ID: " + task.projectId() + " not found"));
         newTask.setProject(project);
 
+        long taskCount = repository.countByProjectId(project.getId());
+        newTask.setTaskNumber(taskCount + 1);
+
         Worker createdBy = workerRepository.findById(task.createdById())
                 .orElseThrow(() -> new NotFoundException("Worker (creator) with ID: " + task.createdById() + " not found"));
         newTask.setCreatedBy(createdBy);
@@ -64,24 +68,6 @@ public class TaskService {
                 .orElseThrow(() -> new NotFoundException("Task Type with ID: " + task.taskTypeId() + " not found"));
         newTask.setTaskType(type);
 
-        if (task.taskStatusId() != null) {
-        }
-
-        if (task.taskPriorityId() != null) {
-        }
-
-        if (task.taskTypeId() != null) {
-        }
-
-        if (task.projectId() != null) {
-        }
-
-        if (task.assignedToId() != null) {
-        }
-
-        if (task.createdById() != null) {
-        }
-
         return repository.save(newTask);
     }
 
@@ -91,15 +77,58 @@ public class TaskService {
 
     }
 
+    @Transactional
     public Task updateTask(TaskRequestDTO taskRequestDTO) {
-        Project project = projectRepository.findById(taskRequestDTO.projectId()).orElse(null);
 
-        if (project != null) {
-            Task task = repository.findByProjectAndTaskNumber(project, taskRequestDTO.taskNumber());
-            return repository.save(task);
+        Project project = projectRepository.findById(taskRequestDTO.projectId()).orElseThrow(() -> new NotFoundException("Project with ID: " + taskRequestDTO.projectId() + " not found"));
 
+        Task task = repository.findByProjectAndTaskNumber(project, taskRequestDTO.taskNumber());
+        if (task == null) return null;
+
+        if (taskRequestDTO.title() != null && !taskRequestDTO.title().isBlank()) {
+            task.setTitle(taskRequestDTO.title());
         }
-        return null;
+        if (taskRequestDTO.description() != null) {
+            task.setDescription(taskRequestDTO.description());
+        }
+        if (taskRequestDTO.technology() != null) {
+            task.setTechnology(taskRequestDTO.technology());
+        }
+        if (taskRequestDTO.deadline() != null) {
+            task.setDeadline(taskRequestDTO.deadline());
+        }
+
+        if (taskRequestDTO.taskStatusId() != null) {
+            taskStatusRepository.findById(taskRequestDTO.taskStatusId())
+                    .ifPresent(task::setTaskStatus);
+        }
+
+        if (taskRequestDTO.taskPriorityId() != null) {
+            taskPriorityRepository.findById(taskRequestDTO.taskPriorityId())
+                    .ifPresent(task::setTaskPriority);
+        }
+
+        if (taskRequestDTO.taskTypeId() != null) {
+            taskTypeRepository.findById(taskRequestDTO.taskTypeId())
+                    .ifPresent(task::setTaskType);
+        }
+
+        if (taskRequestDTO.assignedToId() != null) {
+            workerRepository.findById(taskRequestDTO.assignedToId())
+                    .ifPresent(task::setAssignedTo);
+        }
+
+        if (taskRequestDTO.createdById() != null) {
+            workerRepository.findById(taskRequestDTO.createdById())
+                    .ifPresent(task::setCreatedBy);
+        }
+
+        return repository.save(task);
+    }
+    public TaskResponseDTO updateTaskResponseDTO(TaskRequestDTO dto) {
+        Task updatedTask = updateTask(dto);
+        TaskResponseDTO response = convertToDTO(updatedTask);
+        return response;
     }
 
     public List<Task> getAllTasks() {
@@ -107,6 +136,17 @@ public class TaskService {
     }
     public Task findTask(Project project, Long taskNumber) {
         return repository.findByProjectAndTaskNumber(project, taskNumber);
+    }
+
+    public TaskResponseDTO findTaskResponse(Project project, Long taskNumber) {
+        Task task = findTask(project, taskNumber);
+
+        if (task == null)  {
+            throw new NotFoundException("Task wih number: " + taskNumber + " not found");
+
+        }
+
+        return convertToDTO(task);
     }
 
     public void deleteByProjectIdAndTaskNumber(Long projectId, Long taskNumber) {
@@ -120,6 +160,11 @@ public class TaskService {
         repository.delete(task);
     }
 
+    public List<TaskResponseDTO> getAllTasksResponse() {
+        List<Task> allTasks = getAllTasks();
+        return convertToDTOList(allTasks);
+    }
+
     public List<TaskResponseDTO> convertToDTOList(List<Task> tasks) {
         return tasks.stream()
                 .map(task -> convertToDTO(task))
@@ -127,10 +172,28 @@ public class TaskService {
     }
 
     public TaskResponseDTO convertToDTO(Task task) {
-        TaskResponseDTO taskResponseDTO = new TaskResponseDTO(task.getTitle(), task.getDescription(), task.getTaskStatus().getName(), task.getTaskPriority().getName(),
-                task.getTaskType().getName(), task.getProject().getName(), task.getTechnology(),
-                task.getAssignedTo().getFirstName(), task.getCreatedBy().getFirstName(), task.getDeadline());
-        return taskResponseDTO;
+        if (task == null) return null;
+
+        String status   = (task.getTaskStatus()   != null) ? task.getTaskStatus().getName()      : null;
+        String priority = (task.getTaskPriority() != null) ? task.getTaskPriority().getName()    : null;
+        String type     = (task.getTaskType()     != null) ? task.getTaskType().getName()        : null;
+        String project  = (task.getProject()      != null) ? task.getProject().getName()         : null;
+        String assigned = (task.getAssignedTo()   != null) ? task.getAssignedTo().getFirstName() : null;
+        String created  = (task.getCreatedBy()    != null) ? task.getCreatedBy().getFirstName()  : null;
+
+        return new TaskResponseDTO(
+                task.getTitle(),
+                task.getDescription(),
+                status,
+                priority,
+                type,
+                project,
+                task.getTechnology(),
+                assigned,
+                created,
+                task.getDeadline(),
+                task.getTaskNumber()
+        );
     }
 
 }

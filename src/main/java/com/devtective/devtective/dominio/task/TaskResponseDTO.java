@@ -12,5 +12,6 @@ public record TaskResponseDTO(
         String technologyName,
         String assignedToFullName,
         String createdByIdFullName,
-        LocalDate deadline
+        LocalDate deadline,
+        Long taskNumber
 ) {}

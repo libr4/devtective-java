@@ -9,8 +9,10 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -21,7 +23,8 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
-@EnableWebSecurity
+@EnableWebSecurity()
+@EnableMethodSecurity(prePostEnabled = true)
 public class WebSecurityConfig {
 
     @Autowired
@@ -31,17 +34,30 @@ public class WebSecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
+                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
                 .authorizeHttpRequests(requests -> requests
-                        .requestMatchers(HttpMethod.POST, "/api/v1/users").permitAll()
-                        .requestMatchers("/", "/home", "/api/v1/auth/login", "/api/v1/auth/register").permitAll()
-                        .anyRequest().authenticated()
+                    .requestMatchers(HttpMethod.POST, "/api/v1/auth/login", "/api/v1/auth/register").permitAll()
+                    .requestMatchers("/actuator/health", "/").permitAll()
+
+                    .requestMatchers(HttpMethod.POST,   "/api/v1/projects/**").hasAnyAuthority("ROLE_MANAGER", "ROLE_ADMIN")
+                    .requestMatchers(HttpMethod.PUT,    "/api/v1/projects/**").hasAnyAuthority("ROLE_MANAGER", "ROLE_ADMIN")
+                    .requestMatchers(HttpMethod.DELETE, "/api/v1/projects/**").hasAnyAuthority("ROLE_MANAGER", "ROLE_ADMIN")
+
+                    .requestMatchers(HttpMethod.POST,   "/api/v1/tasks", "/api/v1/tasks/**").hasAnyAuthority("ROLE_MANAGER", "ROLE_WORKER", "ROLE_ADMIN")
+                    .requestMatchers(HttpMethod.PUT,"/api/v1/tasks",    "/api/v1/tasks/**").hasAnyAuthority("ROLE_MANAGER", "ROLE_WORKER", "ROLE_ADMIN")
+                    .requestMatchers(HttpMethod.DELETE,"/api/v1/tasks", "/api/v1/tasks/**").hasAnyAuthority("ROLE_MANAGER", "ROLE_WORKER", "ROLE_ADMIN")
+
+                    .anyRequest().authenticated()
                 )
+
+                //.authorizeHttpRequests(requests -> requests
+                //        .requestMatchers(HttpMethod.POST, "/api/v1/users").permitAll()
+                //        .requestMatchers("/", "/home", "/api/v1/auth/login", "/api/v1/auth/register").permitAll()
+                //        .requestMatchers(HttpMethod.POST, "/api/v1/projects/**").hasAnyAuthority("ROLE_MANAGER", "ROLE_ADMIN")
+                //        .anyRequest().authenticated()
+                //)
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class);
-//                .formLogin((form) -> form
-//                        .loginPage("/api/v1/auth/login")
-//                        .permitAll()
-//                );
-//                .logout(logout -> logout.permitAll());
 
         return http.build();
     }

@@ -3,14 +3,17 @@ package com.devtective.devtective.service.project;
 import com.devtective.devtective.dominio.project.Project;
 import com.devtective.devtective.dominio.project.ProjectRequestDTO;
 import com.devtective.devtective.dominio.project.ProjectResponseDTO;
+import com.devtective.devtective.dominio.user.AppUser;
 import com.devtective.devtective.dominio.worker.Worker;
 import com.devtective.devtective.dominio.worker.WorkerResponseDTO;
 import com.devtective.devtective.exception.NotFoundException;
+import com.devtective.devtective.repository.ProjectMemberRepository;
 import com.devtective.devtective.repository.ProjectRepository;
 import com.devtective.devtective.repository.WorkerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -21,6 +24,8 @@ public class ProjectService {
     private ProjectRepository projectRepository;
     @Autowired
     private WorkerRepository workerRepository;
+    @Autowired
+    private ProjectMemberRepository projectMemberRepository;
 
     public ProjectResponseDTO createProject(ProjectRequestDTO dto) {
         Project project = new Project();
@@ -70,6 +75,42 @@ public class ProjectService {
         Project project = projectRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Project with ID: " + id + " not found"));
         projectRepository.delete(project);
+    }
+
+    public List<ProjectResponseDTO> getProjectsFor(AppUser me) {
+
+        boolean isAdmin = me.getAuthorities().stream()
+            .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
+        if (isAdmin) {
+            return convertToDTOList(projectRepository.findAll());
+        }
+
+        Worker worker = workerRepository.findByUserId(me);
+        if (worker == null) {
+            return List.of();
+        }
+        Long workerId = worker.getId();
+
+        List<Project> owned = projectRepository.findAllByCreatedBy_Id(workerId);
+
+        List<Long> memberProjectIds = projectMemberRepository
+                .findAllByWorker_Id(workerId)
+                .stream()
+                .map(pm -> pm.getProject().getId())
+                .distinct()
+                .toList();
+
+        List<Project> memberProjects = memberProjectIds.isEmpty()
+                        ? List.of()
+                        : projectRepository.findAllById(memberProjectIds);
+
+        List<Project> combined = new ArrayList<>(owned);
+        for (Project p : memberProjects) {
+            if (owned.stream().noneMatch(o -> o.getId() == p.getId())) {
+                    combined.add(p);
+            }
+        }
+        return convertToDTOList(combined);
     }
 
     public List<ProjectResponseDTO> convertToDTOList(List<Project> projects) {

@@ -44,13 +44,14 @@ public class UserController {
     }
 
     @GetMapping("{username}")
+    @PreAuthorize("@perm.selfOrAdmin(authentication, #username)")
     public ResponseEntity<UserResponseDTO> getUser(@PathVariable String username) {
         UserResponseDTO response = userService.fetchOwnUser(username);
         return ResponseEntity.ok(response);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("{username}")
+    @PreAuthorize("@perm.selfOrAdmin(authentication, #username)")
     public ResponseEntity<UserResponseDTO> updateUser(@PathVariable String username, @RequestBody UserRequestDTO user) {
         UserResponseDTO response = userService.updateUserResponse(username, user);
         return ResponseEntity.ok(response);
@@ -63,8 +64,8 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("{username}")
+    @PreAuthorize("@perm.selfOrAdmin(authentication, #username)")
     public ResponseEntity<String> deleteUser(@PathVariable String username) {
         userService.deleteByUsername(username);
         String response = "User removed successfully";

@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -49,6 +50,22 @@ public class WebSecurityConfig {
                     .requestMatchers(HttpMethod.DELETE,"/api/v1/tasks", "/api/v1/tasks/**").hasAnyAuthority("ROLE_MANAGER", "ROLE_WORKER", "ROLE_ADMIN")
 
                     .anyRequest().authenticated()
+                )
+                .exceptionHandling(e -> e
+                        .authenticationEntryPoint((req, res, ex) -> {
+                            res.setStatus(HttpStatus.UNAUTHORIZED.value());
+                            res.setContentType("application/json");
+                            res.getWriter().write("""
+                                {"timestamp":"%s","status":401,"error":"Unauthorized","message":"Authentication required"}
+                                """.formatted(java.time.LocalDateTime.now()));
+                        })
+                        .accessDeniedHandler((req, res, ex) -> {
+                            res.setStatus(HttpStatus.FORBIDDEN.value());
+                            res.setContentType("application/json");
+                            res.getWriter().write("""
+                                {"timestamp":"%s","status":403,"error":"Forbidden","message":"Access is denied"}
+                                """.formatted(java.time.LocalDateTime.now()));
+                        })
                 )
 
                 //.authorizeHttpRequests(requests -> requests

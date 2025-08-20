@@ -52,7 +52,8 @@ public class UserController {
 
     @PutMapping("{username}")
     @PreAuthorize("@perm.selfOrAdmin(authentication, #username)")
-    public ResponseEntity<UserResponseDTO> updateUser(@PathVariable String username, @RequestBody UserRequestDTO user) {
+    public ResponseEntity<UserResponseDTO> updateUser(@PathVariable String username,
+                                                      @Valid @RequestBody UserRequestDTO user) {
         UserResponseDTO response = userService.updateUserResponse(username, user);
         return ResponseEntity.ok(response);
     }

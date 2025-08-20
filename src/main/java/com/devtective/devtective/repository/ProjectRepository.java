@@ -9,6 +9,6 @@ import java.util.List;
 
 public interface ProjectRepository extends JpaRepository<Project, Long> {
     List<Project> findByCreatedBy(Worker worker);
-    List<Project> findAllByCreatedBy_Id(Long workerId);
+    List<Project> findAllByCreatedById(Long workerId);
 
 }

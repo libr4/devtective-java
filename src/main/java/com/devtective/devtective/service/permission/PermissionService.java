@@ -42,7 +42,7 @@ public class PermissionService {
             // owner
             if (p.getCreatedBy() != null && p.getCreatedBy().getId() == wid) return true;
             // member
-            return projectMemberRepository.existsByProject_IdAndWorker_Id(projectId, wid);
+            return projectMemberRepository.existsByProjectIdAndWorkerId(projectId, wid);
         }
 
         public boolean ownerOrLeadOrAdmin(Authentication auth, Long projectId) {
@@ -57,7 +57,7 @@ public class PermissionService {
             // owner
             if (p.getCreatedBy() != null && p.getCreatedBy().getId() == wid) return true;
             // lead
-            return projectLeaderRepository.existsByProject_IdAndWorker_Id(projectId, wid);
+            return projectLeaderRepository.existsByProjectIdAndWorkerId(projectId, wid);
         }
         private boolean isAdmin(Authentication auth) {
             return auth.getAuthorities().stream()

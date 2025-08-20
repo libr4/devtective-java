@@ -57,31 +57,33 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    // 422: @Valid on @RequestBody failures
+    // 400: body validation (@Valid on @RequestBody)
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, Object>> handleMethodArgumentNotValid(MethodArgumentNotValidException ex) {
-        var errors = ex.getBindingResult().getFieldErrors().stream()
+        var fields = ex.getBindingResult().getFieldErrors().stream()
                 .map(fe -> Map.of("field", fe.getField(), "message", fe.getDefaultMessage()))
                 .toList();
-        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
-                .body(errorBody(HttpStatus.UNPROCESSABLE_ENTITY, "Validation failed", Map.of("fields", errors)));
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(errorBody(HttpStatus.BAD_REQUEST, "Validation failed", Map.of("fields", fields)));
     }
 
-    // 422: @Validated on @RequestParam/@PathVariable failures
+    // 400: param/path validation (@Validated on controller + annotations on params)
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<Map<String, Object>> handleConstraintViolation(ConstraintViolationException ex) {
-        var errors = ex.getConstraintViolations().stream()
+        var constraints = ex.getConstraintViolations().stream()
                 .map(cv -> Map.of("property", cv.getPropertyPath().toString(), "message", cv.getMessage()))
                 .toList();
-        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
-                .body(errorBody(HttpStatus.UNPROCESSABLE_ENTITY, "Validation failed", Map.of("constraints", errors)));
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(errorBody(HttpStatus.BAD_REQUEST, "Validation failed", Map.of("constraints", constraints)));
     }
 
-    // 422: malformed/empty JSON body
+    // 400: malformed JSON / missing body
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<Map<String, Object>> handleNotReadable(HttpMessageNotReadableException ex) {
-        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
-                .body(errorBody(HttpStatus.UNPROCESSABLE_ENTITY, "Malformed request body", null));
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(errorBody(HttpStatus.BAD_REQUEST, "Malformed request body", null));
     }
 
     // 405: wrong HTTP method (nice to have; still JSON)

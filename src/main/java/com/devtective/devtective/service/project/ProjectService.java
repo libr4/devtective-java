@@ -91,10 +91,10 @@ public class ProjectService {
         }
         Long workerId = worker.getId();
 
-        List<Project> owned = projectRepository.findAllByCreatedBy_Id(workerId);
+        List<Project> owned = projectRepository.findAllByCreatedById(workerId);
 
         List<Long> memberProjectIds = projectMemberRepository
-                .findAllByWorker_Id(workerId)
+                .findAllByWorkerId(workerId)
                 .stream()
                 .map(pm -> pm.getProject().getId())
                 .distinct()

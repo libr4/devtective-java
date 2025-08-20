@@ -48,8 +48,15 @@ public class UserService {
 
         String hashedPassword = passwordEncoder.encode(data.password());
 
-        Role newRole = roleRepository.findById(data.roleId()).orElseThrow(() -> new NotFoundException("Role with ID: " + data.roleId() + " not found"));
-        user.setRole(newRole);
+        //Role newRole = roleRepository.findById(data.roleId()).orElseThrow(() -> new NotFoundException("Role with ID: " + data.roleId() + " not found"));
+        //user.setRole(newRole);
+
+        Role defaultRole = roleRepository.findByRoleName("USER");
+
+        if (defaultRole == null) {
+            throw new NotFoundException("Default role not configured");
+        }
+        user.setRole(defaultRole);
 
         user.setPasswordHash(hashedPassword);
 

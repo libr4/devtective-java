@@ -10,6 +10,6 @@ public record UserRequestDTO(
         String email,
         @Size(min = 8, max = 100, message = "Password must be 8–100 chars")
         String password,
-        long roleId) {
+        Long roleId) {
 
 }

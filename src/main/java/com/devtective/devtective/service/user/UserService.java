@@ -106,8 +106,8 @@ public class UserService {
         user.setUsername(data.username());
         user.setEmail(data.email());
 
-        Role newRole = new Role(data.roleId());
-        user.setRole(newRole);
+        //Role newRole = new Role(data.roleId());
+        //user.setRole(newRole);
         if (data.password() != null && !data.password().isBlank()) {
             String hashedPassword = passwordEncoder.encode(data.password());
             user.setPasswordHash(hashedPassword);

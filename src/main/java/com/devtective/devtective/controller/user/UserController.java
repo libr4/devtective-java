@@ -60,7 +60,7 @@ public class UserController {
     @PutMapping("/me")
     public ResponseEntity<UserResponseDTO> updateMe(@AuthenticationPrincipal AppUser principal,
                                                     @Valid @RequestBody UserRequestDTO user) {
-        String username = principal.getUsername();
+        String username = user.username();
         UserResponseDTO response = userService.updateOwnUser(user, username);
         return ResponseEntity.ok(response);
     }

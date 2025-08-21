@@ -67,7 +67,7 @@ class ProjectControllerIntegrationTest {
     @BeforeEach
     void setup() throws Exception {
         // Register user
-        UserRequestDTO userDto = new UserRequestDTO(username, email, "password", 1);
+        UserRequestDTO userDto = new UserRequestDTO(username, email, "password", Long.valueOf(1));
 
         mockMvc.perform(post("/api/v1/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)

@@ -6,6 +6,8 @@ import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
@@ -98,6 +100,16 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, Object>> handleBadRequest(Exception ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(errorBody(HttpStatus.BAD_REQUEST, "Bad request", Map.of("detail", ex.getMessage())));
+    }
+
+    @ExceptionHandler({ AccessDeniedException.class, AuthorizationDeniedException.class })
+    public ResponseEntity<Map<String, Object>> handleAccessDenied(Exception ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(errorBody(
+                        HttpStatus.FORBIDDEN,
+                        "Forbidden",
+                        Map.of("detail", ex.getMessage())
+                ));
     }
 
     // helper to keep response shape consistent

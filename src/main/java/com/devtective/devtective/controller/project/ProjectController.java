@@ -5,6 +5,7 @@ import com.devtective.devtective.dominio.project.ProjectRequestDTO;
 import com.devtective.devtective.dominio.project.ProjectResponseDTO;
 import com.devtective.devtective.dominio.user.AppUser;
 import com.devtective.devtective.service.project.ProjectService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -42,14 +43,18 @@ public class ProjectController {
 
     @PostMapping
     public ResponseEntity<ProjectResponseDTO> createProject(@RequestBody ProjectRequestDTO project) {
+        System.out.println("Project controller");
         ProjectResponseDTO created = projectService.createProject(project);
         return ResponseEntity.ok(created);
     }
 
-    @PreAuthorize("@perm.ownerOrLeadOrAdmin(authentication, #project.id)")
-    @PutMapping
-    public ResponseEntity<ProjectResponseDTO> updateProject(@RequestBody ProjectRequestDTO project) {
-        ProjectResponseDTO updated = projectService.updateProject(project);
+    @PreAuthorize("@perm.ownerOrLeadOrAdmin(authentication, #id)")
+    @PutMapping("/{id}")
+    public ResponseEntity<ProjectResponseDTO> updateProject(
+            //@AuthenticationPrincipal AppUser me,
+            @PathVariable Long id,
+            @Valid @RequestBody ProjectRequestDTO project) {
+        ProjectResponseDTO updated = projectService.updateProject(id, project);
         return ResponseEntity.ok(updated);
     }
 

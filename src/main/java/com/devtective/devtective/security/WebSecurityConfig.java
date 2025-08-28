@@ -41,13 +41,13 @@ public class WebSecurityConfig {
                     .requestMatchers(HttpMethod.POST, "/api/v1/auth/login", "/api/v1/auth/register").permitAll()
                     .requestMatchers("/actuator/health", "/").permitAll()
 
-                    .requestMatchers(HttpMethod.POST,   "/api/v1/projects/**").hasAnyAuthority("ROLE_MANAGER", "ROLE_ADMIN")
-                    .requestMatchers(HttpMethod.PUT,    "/api/v1/projects/**").hasAnyAuthority("ROLE_MANAGER", "ROLE_ADMIN")
-                    .requestMatchers(HttpMethod.DELETE, "/api/v1/projects/**").hasAnyAuthority("ROLE_MANAGER", "ROLE_ADMIN")
+                    .requestMatchers(HttpMethod.POST,   "/api/v1/projects/**").hasAnyAuthority("ROLE_MANAGER", "ROLE_ADMIN", "ROLE_USER")
+                    .requestMatchers(HttpMethod.PUT,    "/api/v1/projects/**").hasAnyAuthority("ROLE_MANAGER", "ROLE_ADMIN", "ROLE_USER")
+                    .requestMatchers(HttpMethod.DELETE, "/api/v1/projects/**").hasAnyAuthority("ROLE_MANAGER", "ROLE_ADMIN", "ROLE_USER")
 
-                    .requestMatchers(HttpMethod.POST,   "/api/v1/tasks", "/api/v1/tasks/**").hasAnyAuthority("ROLE_MANAGER", "ROLE_WORKER", "ROLE_ADMIN")
-                    .requestMatchers(HttpMethod.PUT,"/api/v1/tasks",    "/api/v1/tasks/**").hasAnyAuthority("ROLE_MANAGER", "ROLE_WORKER", "ROLE_ADMIN")
-                    .requestMatchers(HttpMethod.DELETE,"/api/v1/tasks", "/api/v1/tasks/**").hasAnyAuthority("ROLE_MANAGER", "ROLE_WORKER", "ROLE_ADMIN")
+                    .requestMatchers(HttpMethod.POST,   "/api/v1/tasks", "/api/v1/tasks/**").hasAnyAuthority("ROLE_MANAGER", "ROLE_WORKER", "ROLE_ADMIN", "ROLE_USER")
+                    .requestMatchers(HttpMethod.PUT,"/api/v1/tasks",    "/api/v1/tasks/**").hasAnyAuthority("ROLE_MANAGER", "ROLE_WORKER", "ROLE_ADMIN", "ROLE_USER")
+                    .requestMatchers(HttpMethod.DELETE,"/api/v1/tasks", "/api/v1/tasks/**").hasAnyAuthority("ROLE_MANAGER", "ROLE_WORKER", "ROLE_ADMIN", "ROLE_USER")
 
                     .anyRequest().authenticated()
                 )

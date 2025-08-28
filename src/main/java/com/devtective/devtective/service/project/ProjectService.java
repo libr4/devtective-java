@@ -28,6 +28,7 @@ public class ProjectService {
     private ProjectMemberRepository projectMemberRepository;
 
     public ProjectResponseDTO createProject(ProjectRequestDTO dto) {
+        System.out.println("Project service");
         Project project = new Project();
 
         project.setName(dto.name());
@@ -45,8 +46,8 @@ public class ProjectService {
         return response;
     }
 
-    public ProjectResponseDTO updateProject(ProjectRequestDTO dto) {
-        Long projectId = dto.id();
+    public ProjectResponseDTO updateProject(Long projectId, ProjectRequestDTO dto) {
+
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new NotFoundException("Project with ID: " + projectId + " not found"));
         project.setName(dto.name());

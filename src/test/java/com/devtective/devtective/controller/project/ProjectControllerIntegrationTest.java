@@ -44,8 +44,7 @@ class ProjectControllerIntegrationTest {
     @Autowired private ObjectMapper objectMapper;
     @Autowired private ProjectRepository projectRepository;
     @Autowired private WorkerRepository workerRepository;
-    @Autowired
-    private UserRepository userRepository;
+    @Autowired private UserRepository userRepository;
 
     private Long userId;
     private Long workerId;
@@ -87,7 +86,7 @@ class ProjectControllerIntegrationTest {
         JsonNode loginJson = objectMapper.readTree(response.getContentAsString());
         userId = loginJson.get("userId").asLong();
 
-        long posId = 1; //developer
+        long posId = 1; // developer
         WorkerRequestDTO workerDTO = new WorkerRequestDTO(generateRandomBigNumber().longValue(), "Doctor", "Who", posId, userId);
         MvcResult workerCreateRes = mockMvc.perform(post("/api/v1/workers/create")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -119,8 +118,15 @@ class ProjectControllerIntegrationTest {
         String projectName = generateRandomName();
         projectId = generateRandomBigNumber().longValue();
 
-        ProjectRequestDTO projectDto = new ProjectRequestDTO(projectId, projectName, "Initial description", "",
-                                            LocalDate.now(), LocalDate.now(), workerId);
+        ProjectRequestDTO projectDto = new ProjectRequestDTO(
+                projectId,
+                projectName,
+                "Initial description",
+                "",
+                LocalDate.now(),
+                LocalDate.now(),
+                workerId
+        );
 
         // 1. Create a project
         String json = objectMapper.writeValueAsString(projectDto);
@@ -128,30 +134,42 @@ class ProjectControllerIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .cookie(jwtCookie)
                         .content(json))
-                .andExpect(status().isOk())
+                .andExpect(status().isOk()) // controller returns 200 OK for now
                 .andExpect(jsonPath("$.name").value(projectName))
-                .andReturn().getResponse().getContentAsString();
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
 
+        // If your response is ProjectResponseDTO, parsing as Project still works if fields match; otherwise switch type
         Project createdProject = objectMapper.readValue(responseJson, Project.class);
         projectId = createdProject.getId();
 
         // 2. Get project by ID
         mockMvc.perform(get("/api/v1/projects/" + projectId)
-                .cookie(jwtCookie))
+                        .cookie(jwtCookie))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value(projectName))
                 .andExpect(jsonPath("$.description").value("Initial description"));
 
         // 3. Get all projects (must include the one we created)
         mockMvc.perform(get("/api/v1/projects")
-                .cookie(jwtCookie))
+                        .cookie(jwtCookie))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", is(not(empty()))))
                 .andExpect(jsonPath(String.format("$[?(@.id == %d)]", projectId)).exists());
 
-        // 4. Update project
-        ProjectRequestDTO updatedDto = new ProjectRequestDTO(projectId, projectName, "Updated description", "", LocalDate.now(), LocalDate.now(), workerId);
-        mockMvc.perform(put("/api/v1/projects")
+        // 4. Update project (NOTE: PUT path now includes {id})
+        ProjectRequestDTO updatedDto = new ProjectRequestDTO(
+                projectId,
+                projectName,
+                "Updated description",
+                "",
+                LocalDate.now(),
+                LocalDate.now(),
+                workerId
+        );
+
+        mockMvc.perform(put("/api/v1/projects/" + projectId)
                         .cookie(jwtCookie)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updatedDto)))
@@ -160,7 +178,8 @@ class ProjectControllerIntegrationTest {
 
         // 5. Delete project
         mockMvc.perform(delete("/api/v1/projects/" + projectId)
-                .cookie(jwtCookie))
+                        .cookie(jwtCookie))
                 .andExpect(status().isNoContent());
     }
 }
+

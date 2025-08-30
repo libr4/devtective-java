@@ -12,7 +12,7 @@ public class Worker {
     @Id
     @GeneratedValue(strategy=GenerationType.IDENTITY)
     @Column(name="worker_id")
-    private long id;
+    private Long id;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="user_id")
@@ -35,7 +35,7 @@ public class Worker {
     private Date hireDate;
 
     //bellow, getters and setters only
-    public long getId() {
+    public Long getId() {
 
         return id;
     }

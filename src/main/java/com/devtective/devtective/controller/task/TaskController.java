@@ -13,6 +13,7 @@ import com.devtective.devtective.service.task.TaskService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -21,53 +22,46 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/v1/tasks")
 public class TaskController {
 
+    @Autowired public TaskService taskService;
+    @Autowired public ProjectService projectService;
 
-    @Autowired
-    public TaskService taskService;
-    @Autowired
-    public ProjectService projectService;
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
     ResponseEntity<List<TaskResponseDTO>> getAllTasks() {
         List<TaskResponseDTO> response = taskService.getAllTasksResponse();
         return ResponseEntity.ok(response);
     }
+
+    // Create: members/leads/owner/admin of the target project
     @PostMapping
+    @PreAuthorize("@perm.canReadOrCreateTask(authentication, #taskRequest.projectId)")
     ResponseEntity<TaskResponseDTO> createTask(@RequestBody TaskRequestDTO taskRequest) {
         TaskResponseDTO createdTask = taskService.createTaskResponseDTO(taskRequest);
         return ResponseEntity.ok(createdTask);
     }
 
+    // Read single task: members/leads/owner/admin
     @GetMapping("{projectId}/{taskNumber:[0-9]+}")
+    @PreAuthorize("@perm.canReadOrCreateTask(authentication, #projectId)")
     public ResponseEntity<TaskResponseDTO> getTask(@PathVariable Long projectId, @PathVariable Long taskNumber) {
         Project project = projectService.getProjectById(projectId);
         TaskResponseDTO response = taskService.findTaskResponse(project, taskNumber);
         return ResponseEntity.ok(response);
     }
 
+    // Update: leads/owner/admin (projectId comes from body)
     @PutMapping
+    @PreAuthorize("@perm.canModifyTask(authentication, #taskRequest.projectId)")
     public ResponseEntity<TaskResponseDTO> updateTask(@RequestBody TaskRequestDTO taskRequest) {
-        //Project project = projectService.getProjectById(taskRequest.projectId());
         TaskResponseDTO response = taskService.updateTaskResponseDTO(taskRequest);
         return ResponseEntity.ok(response);
     }
 
+    // Delete: leads/owner/admin
     @DeleteMapping("{projectId}/{taskNumber:[0-9]+}")
+    @PreAuthorize("@perm.canModifyTask(authentication, #projectId)")
     public ResponseEntity<String> deleteTask(@PathVariable Long projectId, @PathVariable Long taskNumber) {
         taskService.deleteByProjectIdAndTaskNumber(projectId, taskNumber);
         return ResponseEntity.noContent().build();
     }
-
-    private List<TaskResponseDTO> convertToDTOList(List<Task> tasks) {
-        return tasks.stream()
-                .map(task -> convertToDTO(task))
-                .collect(Collectors.toList());
-    }
-
-    private TaskResponseDTO convertToDTO(Task task) {
-        TaskResponseDTO taskResponseDTO = new TaskResponseDTO(task.getTitle(), task.getDescription(), task.getTaskStatus().getName(), task.getTaskPriority().getName(),
-                task.getTaskType().getName(), task.getProject().getName(), task.getTechnology(),
-                task.getAssignedTo().getFirstName(), task.getCreatedBy().getFirstName(), task.getDeadline(), task.getTaskNumber());
-        return taskResponseDTO;
-    }
-
 }

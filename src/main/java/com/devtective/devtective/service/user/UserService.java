@@ -41,6 +41,11 @@ public class UserService {
             throw new ConflictException("Username already exists: " + data.username());
         }
 
+        AppUser emailExists = repository.findByEmail(data.email());
+        if (emailExists != null) {
+            throw new ConflictException("Email already exists: " + data.email());
+        }
+
         AppUser user = new AppUser();
 
         user.setUsername(data.username());

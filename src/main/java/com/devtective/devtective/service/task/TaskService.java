@@ -160,6 +160,11 @@ public class TaskService {
         repository.delete(task);
     }
 
+    public List<TaskResponseDTO> listByProject(Long projectId) {
+        List<Task> tasks = repository.findByProjectId(projectId);
+        return tasks.stream().map(this::convertToDTO).toList();
+    }
+
     public List<TaskResponseDTO> getAllTasksResponse() {
         List<Task> allTasks = getAllTasks();
         return convertToDTOList(allTasks);
@@ -170,6 +175,8 @@ public class TaskService {
                 .map(task -> convertToDTO(task))
                 .collect(Collectors.toList());
     }
+
+
 
     public TaskResponseDTO convertToDTO(Task task) {
         if (task == null) return null;

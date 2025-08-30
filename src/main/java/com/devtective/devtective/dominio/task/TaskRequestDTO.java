@@ -15,4 +15,37 @@ public record TaskRequestDTO(
         LocalDate deadline,
 
         Long taskNumber
-) {}
+) {
+    public TaskRequestDTO withProjectId(Long projectId) {
+        return new TaskRequestDTO(
+                title,
+                description,
+                taskStatusId,
+                taskPriorityId,
+                taskTypeId,
+                projectId,
+                technology,
+                assignedToId,
+                createdById,
+                deadline,
+                taskNumber
+        );
+    }
+
+    // Helper: copy with a new projectId and taskNumber
+    public TaskRequestDTO withProjectIdAndTaskNumber(Long projectId, Long taskNumber) {
+        return new TaskRequestDTO(
+                title,
+                description,
+                taskStatusId,
+                taskPriorityId,
+                taskTypeId,
+                projectId,
+                technology,
+                assignedToId,
+                createdById,
+                deadline,
+                taskNumber
+        );
+    }
+}

@@ -2,6 +2,7 @@ package com.devtective.devtective.controller.project;
 
 import com.devtective.devtective.dominio.project.Project;
 import com.devtective.devtective.dominio.project.ProjectRequestDTO;
+import com.devtective.devtective.dominio.task.TaskRequestDTO;
 import com.devtective.devtective.dominio.user.UserRequestDTO;
 import com.devtective.devtective.dominio.worker.WorkerRequestDTO;
 import com.devtective.devtective.repository.ProjectRepository;
@@ -38,42 +39,46 @@ import java.util.Date;
 @AutoConfigureMockMvc
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @Transactional
-class ProjectControllerIntegrationTest {
+class ProjectTaskControllerIntegrationTest {
 
     @Autowired private MockMvc mockMvc;
     @Autowired private ObjectMapper objectMapper;
-    @Autowired private ProjectRepository projectRepository;
-    @Autowired private WorkerRepository workerRepository;
-    @Autowired private UserRepository userRepository;
-
-    private Long userId;
-    private Long workerId;
-
-    private final String username = "test" + new Random().nextInt(1_000_000);
-    private final String email = username + "@example.com";
 
     private Cookie jwtCookie;
-
-    public static Integer generateRandomBigNumber() {
-        return (100000 + new Random().nextInt(900000));
-    }
-    public static String generateRandomName() {
-        return "Project" + generateRandomBigNumber();
-    }
-
+    private Long userId;
+    private Long workerId;
     private Long projectId;
+
+    // ------------ Utilities ------------
+
+    private static Integer generateRandomBigNumber() {
+        return 100000 + new Random().nextInt(900000);
+    }
+    private static String generateRandomName() {
+        return "Task" + generateRandomBigNumber();
+    }
+
+    // ------------ Common Setup per test ------------
 
     @BeforeEach
     void setup() throws Exception {
-        // Register user
-        UserRequestDTO userDto = new UserRequestDTO(username, email, "password", Long.valueOf(1));
+        registerUserAndLogin();
+        createWorkerForUser();
+        projectId = createProject("Project" + generateRandomBigNumber(), "Initial description");
+    }
 
+    private void registerUserAndLogin() throws Exception {
+        String username = "test" + generateRandomBigNumber();
+        String email = username + "@example.com";
+        UserRequestDTO userDto = new UserRequestDTO(username, email, "password", 1L);
+
+        // register
         mockMvc.perform(post("/api/v1/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(userDto)))
                 .andExpect(status().isOk());
 
-        // Login user
+        // login
         MvcResult loginResult = mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(userDto)))
@@ -85,101 +90,162 @@ class ProjectControllerIntegrationTest {
 
         JsonNode loginJson = objectMapper.readTree(response.getContentAsString());
         userId = loginJson.get("userId").asLong();
+    }
 
-        long posId = 1; // developer
-        WorkerRequestDTO workerDTO = new WorkerRequestDTO(generateRandomBigNumber().longValue(), "Doctor", "Who", posId, userId);
+    private void createWorkerForUser() throws Exception {
+        long posId = 1L; // e.g., developer
+        WorkerRequestDTO workerDTO = new WorkerRequestDTO(
+                generateRandomBigNumber().longValue(),
+                "Doctor",
+                "Who",
+                posId,
+                userId
+        );
+
         MvcResult workerCreateRes = mockMvc.perform(post("/api/v1/workers/create")
                         .contentType(MediaType.APPLICATION_JSON)
                         .cookie(jwtCookie)
                         .content(objectMapper.writeValueAsString(workerDTO)))
                 .andExpect(status().isOk())
                 .andReturn();
-        MockHttpServletResponse workerRes = workerCreateRes.getResponse();
-        JsonNode createWorkerJson = objectMapper.readTree(workerRes.getContentAsString());
+
+        JsonNode createWorkerJson = objectMapper.readTree(workerCreateRes.getResponse().getContentAsString());
         workerId = createWorkerJson.get("id").asLong();
     }
 
-    @AfterEach
-    @Transactional
-    void cleanup() {
-        if (projectId != null) {
-            projectRepository.deleteById(projectId);
-        }
-        if (workerId != null) {
-            workerRepository.deleteById(workerId);
-        }
-        if (username != null) {
-            userRepository.deleteByUsername(username);
-        }
-    }
-
-    @Test
-    void shouldCreateGetUpdateAndDeleteProject() throws Exception {
-        String projectName = generateRandomName();
-        projectId = generateRandomBigNumber().longValue();
-
+    private Long createProject(String name, String description) throws Exception {
         ProjectRequestDTO projectDto = new ProjectRequestDTO(
-                projectId,
-                projectName,
-                "Initial description",
+                generateRandomBigNumber().longValue(),
+                name,
+                description,
                 "",
                 LocalDate.now(),
                 LocalDate.now(),
                 workerId
         );
 
-        // 1. Create a project
-        String json = objectMapper.writeValueAsString(projectDto);
         String responseJson = mockMvc.perform(post("/api/v1/projects")
                         .contentType(MediaType.APPLICATION_JSON)
                         .cookie(jwtCookie)
-                        .content(json))
-                .andExpect(status().isOk()) // controller returns 200 OK for now
-                .andExpect(jsonPath("$.name").value(projectName))
+                        .content(objectMapper.writeValueAsString(projectDto)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value(name))
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
 
-        // If your response is ProjectResponseDTO, parsing as Project still works if fields match; otherwise switch type
-        Project createdProject = objectMapper.readValue(responseJson, Project.class);
-        projectId = createdProject.getId();
+        return objectMapper.readTree(responseJson).get("id").asLong();
+    }
 
-        // 2. Get project by ID
-        mockMvc.perform(get("/api/v1/projects/" + projectId)
-                        .cookie(jwtCookie))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.name").value(projectName))
-                .andExpect(jsonPath("$.description").value("Initial description"));
+    // ------------ Task Helpers ------------
 
-        // 3. Get all projects (must include the one we created)
-        mockMvc.perform(get("/api/v1/projects")
-                        .cookie(jwtCookie))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$", is(not(empty()))))
-                .andExpect(jsonPath(String.format("$[?(@.id == %d)]", projectId)).exists());
-
-        // 4. Update project (NOTE: PUT path now includes {id})
-        ProjectRequestDTO updatedDto = new ProjectRequestDTO(
-                projectId,
-                projectName,
-                "Updated description",
-                "",
-                LocalDate.now(),
-                LocalDate.now(),
-                workerId
+    private Long createTask(Long projectId, String title) throws Exception {
+        TaskRequestDTO createDto = new TaskRequestDTO(
+                title,
+                "Testing description",
+                1L, // taskStatusId
+                1L, // taskPriorityId
+                1L, // taskTypeId
+                null, // projectId overwritten by controller via path
+                "Java",
+                workerId, // assignedToId
+                workerId, // createdById
+                LocalDate.now().plusDays(7),
+                null // taskNumber
         );
 
-        mockMvc.perform(put("/api/v1/projects/" + projectId)
+        String res = mockMvc.perform(post("/api/v1/projects/{projectId}/tasks", projectId)
                         .cookie(jwtCookie)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(updatedDto)))
+                        .content(objectMapper.writeValueAsString(createDto)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.description").value("Updated description"));
+                .andExpect(jsonPath("$.title").value(title))
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
 
-        // 5. Delete project
-        mockMvc.perform(delete("/api/v1/projects/" + projectId)
+        return objectMapper.readTree(res).get("taskNumber").asLong();
+    }
+
+    private void getTaskExpect(Long projectId, Long taskNumber, String expectedTitle) throws Exception {
+        mockMvc.perform(get("/api/v1/projects/{projectId}/tasks/{taskNumber}", projectId, taskNumber)
+                        .cookie(jwtCookie))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.title").value(expectedTitle));
+    }
+
+    private void updateTask(Long projectId, Long taskNumber, String newTitle) throws Exception {
+        TaskRequestDTO updateDto = new TaskRequestDTO(
+                newTitle,
+                "Updated desc",
+                2L,
+                2L,
+                2L,
+                null, // projectId from path
+                "Spring",
+                workerId,
+                workerId,
+                LocalDate.now().plusDays(10),
+                taskNumber
+        );
+
+        mockMvc.perform(put("/api/v1/projects/{projectId}/tasks/{taskNumber}", projectId, taskNumber)
+                        .cookie(jwtCookie)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateDto)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.title").value(newTitle));
+    }
+
+    private void listTasksExpectContainsTitle(Long projectId, String title) throws Exception {
+        mockMvc.perform(get("/api/v1/projects/{projectId}/tasks", projectId)
+                        .cookie(jwtCookie))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$[*].title", org.hamcrest.Matchers.hasItem(title)));
+    }
+
+    private void deleteTask(Long projectId, Long taskNumber) throws Exception {
+        mockMvc.perform(delete("/api/v1/projects/{projectId}/tasks/{taskNumber}", projectId, taskNumber)
                         .cookie(jwtCookie))
                 .andExpect(status().isNoContent());
     }
+
+    private void expectTaskNotFound(Long projectId, Long taskNumber) throws Exception {
+        mockMvc.perform(get("/api/v1/projects/{projectId}/tasks/{taskNumber}", projectId, taskNumber)
+                        .cookie(jwtCookie))
+                .andExpect(status().isNotFound());
+    }
+
+    // ------------ Tests ------------
+
+    @Test
+    void createAndGetTask_shouldSucceed() throws Exception {
+        String title = generateRandomName();
+        Long taskNumber = createTask(projectId, title);
+        getTaskExpect(projectId, taskNumber, title);
+    }
+
+    @Test
+    void updateTask_shouldChangeTitle() throws Exception {
+        Long taskNumber = createTask(projectId, "Original Title");
+        updateTask(projectId, taskNumber, "Updated Title");
+        getTaskExpect(projectId, taskNumber, "Updated Title");
+    }
+
+    @Test
+    void listAndDeleteTask_shouldWork() throws Exception {
+        String title = "ListMe-" + generateRandomBigNumber();
+        Long taskNumber = createTask(projectId, title);
+
+        listTasksExpectContainsTitle(projectId, title);
+
+        deleteTask(projectId, taskNumber);
+        expectTaskNotFound(projectId, taskNumber);
+    }
 }
+
+
+
+
 

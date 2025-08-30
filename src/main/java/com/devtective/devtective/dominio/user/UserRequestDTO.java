@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 public record UserRequestDTO(
+        @NotBlank
         String username,
         @NotBlank @Email @Size(max = 120)
         String email,

@@ -1,5 +1,6 @@
 package com.devtective.devtective.controller.task;
 
+import com.devtective.devtective.controller.AbstractIntegrationTest;
 import com.devtective.devtective.dominio.project.ProjectRequestDTO;
 import com.devtective.devtective.dominio.project.ProjectResponseDTO;
 import com.devtective.devtective.dominio.task.TaskRequestDTO;
@@ -24,12 +25,18 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -39,11 +46,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringBootTest
-@AutoConfigureMockMvc
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@Transactional
-class RegularUserFlowIntegrationTest {
+class RegularUserFlowIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired private MockMvc mockMvc;
     @Autowired private ObjectMapper objectMapper;
@@ -146,7 +150,7 @@ class RegularUserFlowIntegrationTest {
                 "Java",
                 assignedToId,        // assignedTo (w1 or w2)
                 workerId1,           // createdBy (w1)
-                LocalDate.now().plusDays(7),
+                LocalDateTime.now().plusDays(7),
                 null                 // taskNumber on create
         );
 
@@ -193,7 +197,7 @@ class RegularUserFlowIntegrationTest {
                 "Spring",
                 workerId2,          // reassigned to w2 (different user)
                 workerId1,          // createdBy stays
-                LocalDate.now().plusDays(14),
+                LocalDateTime.now().plusDays(14),
                 t1
         );
 

@@ -1,5 +1,6 @@
 package com.devtective.devtective.controller.task;
 
+import com.devtective.devtective.controller.AbstractIntegrationTest;
 import com.devtective.devtective.dominio.project.Project;
 import com.devtective.devtective.dominio.project.ProjectRequestDTO;
 import com.devtective.devtective.dominio.project.ProjectResponseDTO;
@@ -28,17 +29,15 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Random;
 
 import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringBootTest
-@AutoConfigureMockMvc
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@Transactional
-class TaskControllerIntegrationTest {
+class TaskControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired private MockMvc mockMvc;
     @Autowired private ObjectMapper objectMapper;
@@ -128,7 +127,7 @@ class TaskControllerIntegrationTest {
                 "Java",
                 workerId,
                 workerId,
-                LocalDate.now().plusDays(7),
+                LocalDateTime.now().plusDays(7),
                 null // taskNumber is null when creating
         );
 
@@ -160,7 +159,7 @@ class TaskControllerIntegrationTest {
                 "Spring",
                 userId,
                 userId,
-                LocalDate.now().plusDays(10),
+                LocalDateTime.now().plusDays(10),
                 taskNumber
         );
 

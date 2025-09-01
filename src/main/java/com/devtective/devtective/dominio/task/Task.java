@@ -55,7 +55,7 @@ public class Task {
     private LocalDateTime updatedAt;
 
     @Column(name = "deadline",  columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
-    private LocalDate deadline;
+    private LocalDateTime deadline;
 
 
     @Column(name = "task_number")
@@ -157,11 +157,11 @@ public class Task {
         this.updatedAt = updatedAt;
     }
 
-    public LocalDate getDeadline() {
+    public LocalDateTime getDeadline() {
         return deadline;
     }
 
-    public void setDeadline(LocalDate deadline) {
+    public void setDeadline(LocalDateTime deadline) {
         this.deadline = deadline;
     }
     public Long getTaskNumber() {

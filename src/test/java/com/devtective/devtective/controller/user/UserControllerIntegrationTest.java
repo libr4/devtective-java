@@ -1,5 +1,6 @@
 package com.devtective.devtective.controller.user;
 
+import com.devtective.devtective.controller.AbstractIntegrationTest;
 import com.devtective.devtective.dominio.user.UserRequestDTO;
 import com.devtective.devtective.repository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -27,11 +28,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 //import org.springframework.test.web.servlet.MockMvc;
 
 
-@SpringBootTest
-@AutoConfigureMockMvc
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@Transactional
-class UserControllerIntegrationTest {
+class UserControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired private MockMvc mockMvc;
     @Autowired private ObjectMapper objectMapper;

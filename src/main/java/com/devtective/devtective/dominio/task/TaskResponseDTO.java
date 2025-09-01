@@ -1,6 +1,7 @@
 package com.devtective.devtective.dominio.task;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 public record TaskResponseDTO(
         String title,
@@ -12,6 +13,6 @@ public record TaskResponseDTO(
         String technologyName,
         String assignedToFullName,
         String createdByIdFullName,
-        LocalDate deadline,
+        LocalDateTime deadline,
         Long taskNumber
 ) {}

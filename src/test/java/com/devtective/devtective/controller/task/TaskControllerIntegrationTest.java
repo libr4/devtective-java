@@ -64,7 +64,7 @@ class TaskControllerIntegrationTest extends AbstractIntegrationTest {
     @BeforeEach
     void setup() throws Exception {
         // Register user
-        UserRequestDTO userDto = new UserRequestDTO(username, email, "password", Long.valueOf(1));
+        UserRequestDTO userDto = new UserRequestDTO(username, email, "password", Long.valueOf(1), "Doctor Who");
 
         mockMvc.perform(post("/api/v1/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)

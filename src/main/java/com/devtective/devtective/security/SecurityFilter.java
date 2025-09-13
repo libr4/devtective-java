@@ -7,6 +7,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -29,7 +30,9 @@ public class SecurityFilter extends OncePerRequestFilter {
     private static final List<String> PUBLIC_ROUTES = List.of(
             "/api/v1/auth/login",
             "/api/v1/auth/register",
-            "/api/v1/home"
+            "/api/v1/home",
+            "/health",
+            "/actuator/health"
     );
 
     @Override
@@ -37,10 +40,10 @@ public class SecurityFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
         var token = this.recoverToken(request);
-        System.out.println("This is the token: " + token);
+        //System.out.println("This is the token: " + token);
         if(token != null){
             var login = tokenService.validateToken(token);
-            System.out.println("Extracted username: " + login);
+            //System.out.println("Extracted username: " + login);
             UserDetails user = userRepository.findByUsername(login);
 
             var authentication = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
@@ -56,6 +59,10 @@ public class SecurityFilter extends OncePerRequestFilter {
     }
 
     private String recoverToken(HttpServletRequest request) {
+        String header = request.getHeader(HttpHeaders.AUTHORIZATION);
+        if (header != null && header.startsWith("Bearer ")) {
+            return header.substring(7).trim();
+        }
         Cookie[] cookies = request.getCookies();
         if (cookies != null) {
             for (Cookie cookie : cookies) {
@@ -64,7 +71,8 @@ public class SecurityFilter extends OncePerRequestFilter {
                 }
             }
         }
-        return null;
+        String q = request.getParameter("token");
+        return (q != null && !q.isBlank()) ? q : null;
     }
 
     //private String recoverToken(HttpServletRequest request){

@@ -70,7 +70,7 @@ class UserControllerIntegrationTest extends AbstractIntegrationTest {
         // Arrange
         String u = generateRandomUsername();
         String email = u + "@example.com";
-        UserRequestDTO registerDto = new UserRequestDTO(u, email, "secret123", 1L);
+        UserRequestDTO registerDto = new UserRequestDTO(u, email, "secret123", 1L, "Doctor Who");
         Cookie jwt = registerAndLogin(registerDto);
 
         // 1) GET /users/me -> OK, email matches
@@ -89,7 +89,7 @@ class UserControllerIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(status().isForbidden());
 
         // 4) PUT /users/me with invalid email -> 400 Validation
-        UserRequestDTO badUpdate = new UserRequestDTO(null, "not-an-email", null, null);
+        UserRequestDTO badUpdate = new UserRequestDTO(null, "not-an-email", null, null, "Doctor Who");
         mockMvc.perform(put("/api/v1/users/me")
                         .cookie(jwt)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -102,7 +102,7 @@ class UserControllerIntegrationTest extends AbstractIntegrationTest {
 
         // 5) PUT /users/me with valid email -> OK and email updated
         String newEmail = u + "+new@example.com";
-        UserRequestDTO goodUpdate = new UserRequestDTO(u, newEmail, null, null);
+        UserRequestDTO goodUpdate = new UserRequestDTO(u, newEmail, null, null, "Doctor Who");
         mockMvc.perform(put("/api/v1/users/me")
                         .cookie(jwt)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -121,12 +121,12 @@ class UserControllerIntegrationTest extends AbstractIntegrationTest {
     void getUser_byAnotherUser_forbidden() throws Exception {
         // Arrange: user A
         String ua = generateRandomUsername();
-        UserRequestDTO aDto = new UserRequestDTO(ua, ua + "@example.com", "secret123", 1L);
+        UserRequestDTO aDto = new UserRequestDTO(ua, ua + "@example.com", "secret123", 1L, "Doctor Who");
         Cookie aJwt = registerAndLogin(aDto);
 
         // Arrange: user B
         String ub = generateRandomUsername();
-        UserRequestDTO bDto = new UserRequestDTO(ub, ub + "@example.com", "secret123", 1L);
+        UserRequestDTO bDto = new UserRequestDTO(ub, ub + "@example.com", "secret123", 1L, "Doctor Who");
         Cookie bJwt = registerAndLogin(bDto);
 
         // User A tries to fetch user B -> 403 (self-or-admin enforced)

@@ -6,6 +6,8 @@ import jakarta.persistence.*;
 @Table(name="position")
 public class Position {
 
+    public static final String DEFAULT_POSITION = "Undefined";
+
     public Position() {
     }
     public Position(Long id) {

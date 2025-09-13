@@ -68,7 +68,7 @@ class ProjectTaskControllerIntegrationTest extends AbstractIntegrationTest {
     private void registerUserAndLogin() throws Exception {
         String username = "test" + generateRandomBigNumber();
         String email = username + "@example.com";
-        UserRequestDTO userDto = new UserRequestDTO(username, email, "password", 1L);
+        UserRequestDTO userDto = new UserRequestDTO(username, email, "password", 1L, "Doctor Who");
 
         // register
         mockMvc.perform(post("/api/v1/auth/register")

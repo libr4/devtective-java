@@ -21,6 +21,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 
 @Service
 public class WorkerService {
@@ -49,6 +50,27 @@ public class WorkerService {
         Worker createdWorker = workerRepository.save(worker);
         WorkerResponseDTO response = fromWorkerToResponseDTO(createdWorker);
         return response;
+    }
+
+    public Worker createWorkerFromUserRequest(UserRequestDTO data, AppUser newUser) {
+        String fullName = Objects.toString(data.fullName(), "").trim();
+
+        String firstName = null;
+        String lastName  = null;
+
+        if (!fullName.isEmpty()) {
+            String[] parts = fullName.split("\\s+", 2); // split into [first, rest]
+            firstName = parts[0];
+            lastName  = (parts.length == 2) ? parts[1] : null;
+        }
+
+        Worker newWorker = new Worker();
+        newWorker.setFirstName(firstName);
+        newWorker.setLastName(lastName);
+        newWorker.setUserId(newUser);
+
+        return workerRepository.save(newWorker);
+
     }
 
     public Worker fromDTOtoWorker(WorkerRequestDTO data) {

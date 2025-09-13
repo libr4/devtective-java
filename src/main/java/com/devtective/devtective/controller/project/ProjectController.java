@@ -42,9 +42,9 @@ public class ProjectController {
     }
 
     @PostMapping
-    public ResponseEntity<ProjectResponseDTO> createProject(@RequestBody ProjectRequestDTO project) {
+    public ResponseEntity<ProjectResponseDTO> createProject(@RequestBody ProjectRequestDTO project, @AuthenticationPrincipal AppUser me) {
         System.out.println("Project controller");
-        ProjectResponseDTO created = projectService.createProject(project);
+        ProjectResponseDTO created = projectService.createProject(project, me);
         return ResponseEntity.ok(created);
     }
 

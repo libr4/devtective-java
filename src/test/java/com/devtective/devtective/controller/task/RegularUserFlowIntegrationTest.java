@@ -105,7 +105,7 @@ class RegularUserFlowIntegrationTest extends AbstractIntegrationTest {
         // --- User 1: register + login ---
         String u1 = randomUsername();
         String e1 = u1 + "@example.com";
-        MockHttpServletResponse resp1 = registerAndLogin(new UserRequestDTO(u1, e1, "password", 1L));
+        MockHttpServletResponse resp1 = registerAndLogin(new UserRequestDTO(u1, e1, "password", 1L, "Doctor Who"));
         jwtCookie = resp1.getCookie("jwt");
         assertNotNull(jwtCookie, "JWT cookie must be present after login (user1)");
         JsonNode login1 = objectMapper.readTree(resp1.getContentAsString());
@@ -115,7 +115,7 @@ class RegularUserFlowIntegrationTest extends AbstractIntegrationTest {
         // --- User 2: register + login (just to obtain its userId) ---
         String u2 = randomUsername();
         String e2 = u2 + "@example.com";
-        MockHttpServletResponse resp2 = registerAndLogin(new UserRequestDTO(u2, e2, "password", 1L));
+        MockHttpServletResponse resp2 = registerAndLogin(new UserRequestDTO(u2, e2, "password", 1L, "Doctor Who"));
         JsonNode login2 = objectMapper.readTree(resp2.getContentAsString());
         userId2 = login2.get("userId").asLong();
 
@@ -228,7 +228,7 @@ class RegularUserFlowIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void register_invalidEmail_400() throws Exception {
-        var dto = new UserRequestDTO("user" + randSuffix(), "not-an-email", "StrongPass1!", 1L);
+        var dto = new UserRequestDTO("user" + randSuffix(), "not-an-email", "StrongPass1!", 1L, "Doctor Who");
 
         postJson("/api/v1/auth/register", dto)
                 .andExpect(status().isBadRequest());
@@ -236,7 +236,7 @@ class RegularUserFlowIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void register_missingUsername_400() throws Exception {
-        var dto = new UserRequestDTO("", "u" + randSuffix() + "@example.com", "StrongPass1!", 1L);
+        var dto = new UserRequestDTO("", "u" + randSuffix() + "@example.com", "StrongPass1!", 1L, "Doctor Who");
 
         postJson("/api/v1/auth/register", dto)
                 .andExpect(status().isBadRequest());
@@ -248,17 +248,17 @@ class RegularUserFlowIntegrationTest extends AbstractIntegrationTest {
         var email = uname + "@example.com";
 
         // first ok
-        postJson("/api/v1/auth/register", new UserRequestDTO(uname, email, "StrongPass1!", 1L))
+        postJson("/api/v1/auth/register", new UserRequestDTO(uname, email, "StrongPass1!", 1L, "Doctor Who"))
                 .andExpect(status().isOk());
 
         // duplicate email should conflict
-        postJson("/api/v1/auth/register", new UserRequestDTO("other" + randSuffix(), email, "StrongPass1!", 1L))
+        postJson("/api/v1/auth/register", new UserRequestDTO("other" + randSuffix(), email, "StrongPass1!", 1L, "Doctor Who"))
                 .andExpect(status().isConflict());
     }
 
     @Test
     void login_unknownUser_401() throws Exception {
-        var dto = new UserRequestDTO("ghost" + randSuffix(), "ghost" + randSuffix() + "@example.com", "nopenope", 1L);
+        var dto = new UserRequestDTO("ghost" + randSuffix(), "ghost" + randSuffix() + "@example.com", "nopenope", 1L, "Doctor Who");
 
         postJson("/api/v1/auth/login", dto)
                 .andExpect(status().isUnauthorized())
@@ -272,16 +272,16 @@ class RegularUserFlowIntegrationTest extends AbstractIntegrationTest {
         var pass  = "StrongPass1!";
 
         // register
-        postJson("/api/v1/auth/register", new UserRequestDTO(uname, email, pass, 1L))
+        postJson("/api/v1/auth/register", new UserRequestDTO(uname, email, pass, 1L, "Doctor Who"))
                 .andExpect(status().isOk());
 
         // wrong password → 401
-        postJson("/api/v1/auth/login", new UserRequestDTO(uname, email, "WRONGxxxx", 1L))
+        postJson("/api/v1/auth/login", new UserRequestDTO(uname, email, "WRONGxxxx", 1L, "Doctor Who"))
                 .andExpect(status().isUnauthorized())
                 .andExpect(cookie().doesNotExist("jwt"));
 
         // correct password → 200 and jwt
-        MockHttpServletResponse ok = postJson("/api/v1/auth/login", new UserRequestDTO(uname, email, pass, 1L))
+        MockHttpServletResponse ok = postJson("/api/v1/auth/login", new UserRequestDTO(uname, email, pass, 1L, "Doctor Who"))
                 .andExpect(status().isOk())
                 .andExpect(cookie().exists("jwt"))
                 .andReturn()

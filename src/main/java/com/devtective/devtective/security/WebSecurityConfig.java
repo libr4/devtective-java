@@ -39,7 +39,7 @@ public class WebSecurityConfig {
 
                 .authorizeHttpRequests(requests -> requests
                     .requestMatchers(HttpMethod.POST, "/api/v1/auth/login", "/api/v1/auth/register").permitAll()
-                    .requestMatchers("/actuator/health", "/").permitAll()
+                    .requestMatchers("/actuator/health", "/health").permitAll()
 
                     .requestMatchers(HttpMethod.POST,   "/api/v1/projects/**").hasAnyAuthority("ROLE_MANAGER", "ROLE_ADMIN", "ROLE_USER")
                     .requestMatchers(HttpMethod.PUT,    "/api/v1/projects/**").hasAnyAuthority("ROLE_MANAGER", "ROLE_ADMIN", "ROLE_USER")
@@ -48,6 +48,11 @@ public class WebSecurityConfig {
                     .requestMatchers(HttpMethod.POST,   "/api/v1/tasks", "/api/v1/tasks/**").hasAnyAuthority("ROLE_MANAGER", "ROLE_WORKER", "ROLE_ADMIN", "ROLE_USER")
                     .requestMatchers(HttpMethod.PUT,"/api/v1/tasks",    "/api/v1/tasks/**").hasAnyAuthority("ROLE_MANAGER", "ROLE_WORKER", "ROLE_ADMIN", "ROLE_USER")
                     .requestMatchers(HttpMethod.DELETE,"/api/v1/tasks", "/api/v1/tasks/**").hasAnyAuthority("ROLE_MANAGER", "ROLE_WORKER", "ROLE_ADMIN", "ROLE_USER")
+
+                    .requestMatchers(HttpMethod.GET,   "/api/v1/workspaces", "/api/v1/workspaces/**").hasAnyAuthority("ROLE_MANAGER", "ROLE_WORKER", "ROLE_ADMIN", "ROLE_USER")
+                    .requestMatchers(HttpMethod.POST,   "/api/v1/workspaces", "/api/v1/workspaces/**").hasAnyAuthority("ROLE_MANAGER", "ROLE_WORKER", "ROLE_ADMIN", "ROLE_USER")
+                    .requestMatchers(HttpMethod.PUT,"/api/v1/workspaces",    "/api/v1/workspaces/**").hasAnyAuthority("ROLE_MANAGER", "ROLE_WORKER", "ROLE_ADMIN", "ROLE_USER")
+                    .requestMatchers(HttpMethod.DELETE,"/api/v1/workspaces", "/api/v1/workspaces/**").hasAnyAuthority("ROLE_MANAGER", "ROLE_WORKER", "ROLE_ADMIN", "ROLE_USER")
 
                     .anyRequest().authenticated()
                 )

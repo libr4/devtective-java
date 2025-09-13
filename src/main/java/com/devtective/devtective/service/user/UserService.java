@@ -2,13 +2,12 @@ package com.devtective.devtective.service.user;
 
 import com.devtective.devtective.dominio.project.Project;
 import com.devtective.devtective.dominio.user.*;
+import com.devtective.devtective.dominio.worker.Position;
 import com.devtective.devtective.dominio.worker.Worker;
 import com.devtective.devtective.exception.ConflictException;
 import com.devtective.devtective.exception.NotFoundException;
-import com.devtective.devtective.repository.ProjectRepository;
-import com.devtective.devtective.repository.RoleRepository;
-import com.devtective.devtective.repository.UserRepository;
-import com.devtective.devtective.repository.WorkerRepository;
+import com.devtective.devtective.repository.*;
+import com.devtective.devtective.service.worker.WorkerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -18,8 +17,10 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 
 @Service
 public class UserService {
@@ -28,10 +29,14 @@ public class UserService {
     private ProjectRepository projectRepository;
     @Autowired
     private WorkerRepository workerRepository;
+    //@Autowired
+    //private WorkerService workerService;
     @Autowired
     private UserRepository repository;
     @Autowired
     private RoleRepository roleRepository;
+    @Autowired
+    private PositionRepository positionRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -39,7 +44,7 @@ public class UserService {
     public UserService(PasswordEncoder passwordEncoder) {
         this.passwordEncoder = passwordEncoder;
     }
-    public UserResponseDTO createUser(UserRequestDTO data) {
+    public AppUser createUser(UserRequestDTO data) {
 
         AppUser userExists = repository.findByUsername(data.username());
         if (userExists != null) {
@@ -75,9 +80,41 @@ public class UserService {
         if (newUser.getRole() == null) {
             throw new ConflictException("User doesn't have a role: " + data.username());
         }
+        //UserResponseDTO response = new UserResponseDTO(newUser.getUsername(), newUser.getEmail(), newUser.getRole().getId());
+
+        return newUser;
+    }
+
+    @Transactional
+    public UserResponseDTO register(UserRequestDTO data) {
+
+        AppUser newUser = createUser(data);
+        String fullName = Objects.toString(data.fullName(), "").trim();
+
+        String firstName = null;
+        String lastName  = null;
+
+        if (!fullName.isEmpty()) {
+            String[] parts = fullName.split("\\s+", 2); // split into [first, rest]
+            firstName = parts[0];
+            lastName  = (parts.length == 2) ? parts[1] : null;
+        }
+
+        Worker newWorker = new Worker();
+        newWorker.setFirstName(firstName);
+        newWorker.setLastName(lastName);
+        newWorker.setUserId(newUser);
+
+        Position defaultPosition = positionRepository.findByName(Position.DEFAULT_POSITION);
+        newWorker.setPositionId(defaultPosition);
+
+        workerRepository.save(newWorker);
+        //workerService.createWorkerFromUserRequest(data, newUser);
+
         UserResponseDTO response = new UserResponseDTO(newUser.getUsername(), newUser.getEmail(), newUser.getRole().getId());
 
         return response;
+
     }
 
     public List<AppUser> getAllUsers() {

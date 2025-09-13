@@ -46,6 +46,32 @@ public class ProjectService {
         return response;
     }
 
+    public ProjectResponseDTO createProject(ProjectRequestDTO dto, AppUser me) {
+        Project project = new Project();
+
+        project.setName(dto.name());
+        project.setDescription(dto.description());
+        project.setStartDate(dto.startDate());
+        project.setEndDate(dto.endDate());
+
+       Long createdById = dto.createdById();
+       Worker projectCreator = null;
+       if (createdById == null) {
+           projectCreator = workerRepository.findByUserId(me);
+       }
+       else {
+           projectCreator = workerRepository.findById(createdById)
+                   .orElseThrow(() -> new NotFoundException("Worker with ID: " + dto.createdById() + " not found"));
+       }
+
+
+        project.setCreatedBy(projectCreator);
+
+        Project newProject = projectRepository.save(project);
+        ProjectResponseDTO response = convertToDTO(newProject);
+        return response;
+    }
+
     public ProjectResponseDTO updateProject(Long projectId, ProjectRequestDTO dto) {
 
         Project project = projectRepository.findById(projectId)

@@ -6,8 +6,10 @@ import com.devtective.devtective.dominio.worker.Worker;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.UUID;
 
 public interface ProjectRepository extends JpaRepository<Project, Long> {
+    Project findByPublicId(UUID publicId);
     List<Project> findByCreatedBy(Worker worker);
     List<Project> findAllByCreatedById(Long workerId);
 

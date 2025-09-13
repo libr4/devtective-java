@@ -1,2 +1,4 @@
-package com.devtective.devtective.validation;public interface OnRegister {
+package com.devtective.devtective.validation;
+
+public interface OnRegister {
 }

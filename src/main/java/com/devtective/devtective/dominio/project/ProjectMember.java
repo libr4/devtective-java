@@ -1,6 +1,7 @@
 package com.devtective.devtective.dominio.project;
 
 import com.devtective.devtective.dominio.worker.Worker;
+import com.devtective.devtective.dominio.workspace.WorkspaceMember;
 import jakarta.persistence.*;
 
 @Entity
@@ -19,6 +20,13 @@ public class ProjectMember {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "worker_id", nullable = false)
     private Worker worker;
+
+    @Column(name = "workspace_id", nullable = false)
+    private Long workspaceId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "workspace_member_id", nullable = false)
+    private WorkspaceMember workspaceMember;
 
     // bellow, getters, setters and constructors only
     public ProjectMember() {
@@ -51,5 +59,29 @@ public class ProjectMember {
 
     public void setWorker(Worker worker) {
         this.worker = worker;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Long getWorkspaceId() {
+        return workspaceId;
+    }
+
+    public void setWorkspaceId(Long workspaceId) {
+        this.workspaceId = workspaceId;
+    }
+
+    public WorkspaceMember getWorkspaceMember() {
+        return workspaceMember;
+    }
+
+    public void setWorkspaceMember(WorkspaceMember workspaceMember) {
+        this.workspaceMember = workspaceMember;
     }
 }

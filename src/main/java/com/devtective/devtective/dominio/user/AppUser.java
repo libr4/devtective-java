@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 
 @Entity
 @Table(name = "app_user")
@@ -19,6 +20,14 @@ public class AppUser implements UserDetails {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
     private Long userId;
+
+    @Column(name = "public_id", nullable = false, unique = true)
+    private UUID publicId;
+
+    @PrePersist
+    void ensurePublicId() {
+        if (publicId == null) publicId = UUID.randomUUID();
+    }
 
     @Column(name = "username", nullable = false, unique = true)
     private String username;
@@ -127,6 +136,14 @@ public class AppUser implements UserDetails {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public UUID getPublicId() {
+        return publicId;
+    }
+
+    public void setPublicId(UUID publicId) {
+        this.publicId = publicId;
     }
 }
 

@@ -1,11 +1,13 @@
 package com.devtective.devtective.dominio.project;
 
 import com.devtective.devtective.dominio.worker.Worker;
+import com.devtective.devtective.dominio.workspace.Workspace;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.UUID;
 
 @Entity
 @Table(name = "project")
@@ -15,6 +17,17 @@ public class Project {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "project_id")
     private long id;
+
+    @Column(name = "public_id", nullable = false, unique = true)
+    private UUID publicId;
+    @PrePersist
+    void ensurePublicId() {
+        if (publicId == null) publicId = UUID.randomUUID();
+    }
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "workspace_id", nullable = false)
+    private Workspace workspace;
 
     @Column(name = "name", nullable = false)
     private String name;
@@ -111,5 +124,21 @@ public class Project {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public UUID getPublicId() {
+        return publicId;
+    }
+
+    public void setPublicId(UUID publicId) {
+        this.publicId = publicId;
+    }
+
+    public Workspace getWorkspace() {
+        return workspace;
+    }
+
+    public void setWorkspace(Workspace workspace) {
+        this.workspace = workspace;
     }
 }

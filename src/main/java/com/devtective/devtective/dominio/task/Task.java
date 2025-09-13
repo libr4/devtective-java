@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "task")
@@ -14,6 +15,9 @@ public class Task {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "task_id")
     private Long id;
+
+    @Column(name = "public_id", nullable = false, unique = true)
+    private UUID publicId;
 
     @Column(name = "title", nullable = false, length = 255)
     private String title;
@@ -170,5 +174,9 @@ public class Task {
 
     public void setTaskNumber(Long taskNumber) {
         this.taskNumber = taskNumber;
+    }
+
+    public UUID getPublicId() {
+        return publicId;
     }
 }

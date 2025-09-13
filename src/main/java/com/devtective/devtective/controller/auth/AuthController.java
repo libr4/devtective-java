@@ -7,6 +7,8 @@ import com.devtective.devtective.dominio.user.UserResponseDTO;
 import com.devtective.devtective.repository.UserRepository;
 import com.devtective.devtective.security.TokenService;
 import com.devtective.devtective.service.user.UserService;
+import com.devtective.devtective.validation.OnLogin;
+import com.devtective.devtective.validation.OnRegister;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
@@ -43,11 +45,11 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    ResponseEntity<LoginResponseDTO> login(@RequestBody @Validated UserRequestDTO user) {
+    ResponseEntity<LoginResponseDTO> login(@RequestBody @Validated(OnLogin.class) UserRequestDTO user) {
 
         UsernamePasswordAuthenticationToken usernamePassword = new UsernamePasswordAuthenticationToken(user.username(), user.password());
 
-        AppUser loginUser = userRepository.findByEmail(user.email());
+        AppUser loginUser = userRepository.findByUsername(user.username());
 
         if (loginUser == null) {
             throw new BadCredentialsException("Invalid username or password");
@@ -74,8 +76,8 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<UserResponseDTO> createUser(@RequestBody @Validated UserRequestDTO data) {
-        UserResponseDTO response = userService.createUser(data);
+    public ResponseEntity<UserResponseDTO> createUser(@RequestBody @Validated(OnRegister.class) UserRequestDTO data) {
+        UserResponseDTO response = userService.register(data);
         return ResponseEntity.ok(response);
     }
 }

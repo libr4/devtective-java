@@ -45,6 +45,10 @@ public class AppUser implements UserDetails {
     @Column(name = "created_at", updatable = false, nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
+    @OneToOne
+    @Column(name="discoverability_id")
+    private UserDiscoverability discoverability;
+
     public AppUser() {}
 
     public AppUser(Long userId) {

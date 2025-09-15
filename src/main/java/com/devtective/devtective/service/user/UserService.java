@@ -219,4 +219,7 @@ public class UserService {
         return null;
     }
 
+    public List<UserResponseDTO> getRelatedUsers(AppUser me) {
+
+    }
 }

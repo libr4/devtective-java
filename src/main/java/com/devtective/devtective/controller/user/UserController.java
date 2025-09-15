@@ -73,6 +73,14 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
+    /** Usuários relacionados são os usuários que estão no mesmo projeto ou workspace
+     * e podem ser vistos para convite direto para serem membros ou líderes de projetos */
+    @GetMapping("related")
+    public ResponseEntity<List<UserResponseDTO>> getRelatedUsers(@AuthenticationPrincipal AppUser me) {
+        List<UserResponseDTO> response = userService.getRelatedUsers(me);
+
+    }
+
     private UserResponseDTO convertToDTO(AppUser user) {
         Long roleId = (user.getRole() != null ? user.getRole().getId() : null);
         return new UserResponseDTO(user.getUsername(), user.getEmail(), roleId);

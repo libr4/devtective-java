@@ -45,8 +45,8 @@ public class AppUser implements UserDetails {
     @Column(name = "created_at", updatable = false, nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
-    @OneToOne
-    @Column(name="discoverability_id")
+    @ManyToOne
+    @JoinColumn(name="discoverability_id", nullable = false)
     private UserDiscoverability discoverability;
 
     public AppUser() {}
@@ -148,6 +148,14 @@ public class AppUser implements UserDetails {
 
     public void setPublicId(UUID publicId) {
         this.publicId = publicId;
+    }
+
+    public UserDiscoverability getDiscoverability() {
+        return discoverability;
+    }
+
+    public void setDiscoverability(UserDiscoverability discoverability) {
+        this.discoverability = discoverability;
     }
 }
 

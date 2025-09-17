@@ -1,6 +1,7 @@
 package com.devtective.devtective.repository;
 
 import com.devtective.devtective.dominio.user.AppUser;
+import com.devtective.devtective.dominio.user.UserWithFullNameDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -28,25 +29,32 @@ public interface UserRepository extends JpaRepository<AppUser, Long> {
         List<AppUser> findByPublicIdIn(Collection<UUID> ids);
 
         @Query("""
-          SELECT DISTINCT u
-          FROM WorkspaceMember wm
-            JOIN wm.worker w
-            JOIN w.user u
-          WHERE EXISTS (
-            SELECT 1
-            FROM WorkspaceMember wm8
-              JOIN wm8.worker w8
-              JOIN w8.user anchor
-            WHERE wm8.workspace = wm.workspace
-              AND anchor.publicId = :publicId
+          select distinct
+                 u.publicId as publicId, u.username  as username,
+                 coalesce(nullif(
+                     trim(concat(coalesce(w.firstName, ''), ' ', coalesce(w.lastName, ''))),
+                     ''
+                   ),
+                   u.username
+                 ) as displayName
+          from WorkspaceMember wm
+            join wm.worker w
+            join w.userId u
+          where exists (
+            select 1
+            from WorkspaceMember wm8
+              join wm8.worker w8
+              join w8.userId anchor
+            where wm8.workspace = wm.workspace
+              and anchor.publicId = :publicId
           )
-          AND u.publicId <> :publicId
-          AND (:discIds IS NULL OR u.discoverability.id = :discId)
+          and u.publicId <> :publicId
+            and u.discoverability.id <> :#{T(com.devtective.devtective.dominio.user.UserDiscoverabilityConstants).NONE}
+          and u.discoverability.id = :discId
         """)
-        List<AppUser> findUsersSharingWorkspacesWithUserPublicId(
+        List<UserWithFullNameDTO> findUsersSharingWorkspace(
                 @Param("publicId") UUID publicId,
                 @Param("discId") Long discId);
-
 
         void deleteByUsername(String username);
 

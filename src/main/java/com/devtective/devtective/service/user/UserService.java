@@ -37,6 +37,8 @@ public class UserService {
     private RoleRepository roleRepository;
     @Autowired
     private PositionRepository positionRepository;
+    @Autowired
+    UserDiscoverabilityRepository userDiscoverabilityRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -67,6 +69,8 @@ public class UserService {
         //user.setRole(newRole);
 
         Role defaultRole = roleRepository.findByRoleName("USER");
+        UserDiscoverability defaultDisc = userDiscoverabilityRepository.findById(UserDiscoverabilityConstants.WORKSPACE).orElseThrow(() -> new NotFoundException("Not found discoverability ID"));
+        user.setDiscoverability(defaultDisc);
 
         if (defaultRole == null) {
             throw new NotFoundException("Default role not configured");
@@ -219,7 +223,12 @@ public class UserService {
         return null;
     }
 
-    public List<UserResponseDTO> getRelatedUsers(AppUser me) {
-
+    public List<UserWithFullNameDTO> getRelatedUsers(AppUser me) {
+        List<UserWithFullNameDTO> relatedUsers = repository.findUsersSharingWorkspace(me.getPublicId(), me.getDiscoverability().getId());
+        return relatedUsers;
+    }
+    private UserResponseDTO convertToDTO(AppUser user) {
+        Long roleId = (user.getRole() != null ? user.getRole().getId() : null);
+        return new UserResponseDTO(user.getUsername(), user.getEmail(), roleId);
     }
 }

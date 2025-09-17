@@ -3,6 +3,7 @@ package com.devtective.devtective.controller.user;
 import com.devtective.devtective.dominio.user.AppUser;
 import com.devtective.devtective.dominio.user.UserRequestDTO;
 import com.devtective.devtective.dominio.user.UserResponseDTO;
+import com.devtective.devtective.dominio.user.UserWithFullNameDTO;
 import com.devtective.devtective.service.user.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -76,9 +77,9 @@ public class UserController {
     /** Usuários relacionados são os usuários que estão no mesmo projeto ou workspace
      * e podem ser vistos para convite direto para serem membros ou líderes de projetos */
     @GetMapping("related")
-    public ResponseEntity<List<UserResponseDTO>> getRelatedUsers(@AuthenticationPrincipal AppUser me) {
-        List<UserResponseDTO> response = userService.getRelatedUsers(me);
-
+    public ResponseEntity<List<UserWithFullNameDTO>> getRelatedUsers(@AuthenticationPrincipal AppUser me) {
+        List<UserWithFullNameDTO> response = userService.getRelatedUsers(me);
+        return ResponseEntity.ok(response);
     }
 
     private UserResponseDTO convertToDTO(AppUser user) {

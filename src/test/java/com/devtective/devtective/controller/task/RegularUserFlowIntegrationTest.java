@@ -127,7 +127,7 @@ class RegularUserFlowIntegrationTest extends AbstractIntegrationTest {
         ProjectResponseDTO project = projectService.createProject(
                 new ProjectRequestDTO(null, randomProjectName(), "Flow test", "",
                         LocalDate.now(), LocalDate.now().plusDays(30), workerId1));
-        projectId = project.id();
+        projectId = project.publicId();
     }
 
     @AfterEach

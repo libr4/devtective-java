@@ -10,6 +10,11 @@ import java.io.Serializable;
 @Table(name = "project_leader", uniqueConstraints = @UniqueConstraint(columnNames = {"project_id", "worker_id"}))
 public class ProjectLeader implements Serializable {
 
+    public ProjectLeader() {
+    }
+    public ProjectLeader(Long workspaceId, Long workerId) {
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "leader_id")
@@ -25,11 +30,6 @@ public class ProjectLeader implements Serializable {
 
     @Column(name = "workspace_id", nullable = false)
     private Long workspaceId;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "workspace_member_id", nullable = false)
-    private WorkspaceMember workspaceMember;
-
 
     // Getters and Setters
     public Long getId() {
@@ -64,11 +64,4 @@ public class ProjectLeader implements Serializable {
         this.workspaceId = workspaceId;
     }
 
-    public WorkspaceMember getWorkspaceMember() {
-        return workspaceMember;
-    }
-
-    public void setWorkspaceMember(WorkspaceMember workspaceMember) {
-        this.workspaceMember = workspaceMember;
-    }
 }

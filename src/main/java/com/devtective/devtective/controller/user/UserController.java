@@ -1,9 +1,6 @@
 package com.devtective.devtective.controller.user;
 
-import com.devtective.devtective.dominio.user.AppUser;
-import com.devtective.devtective.dominio.user.UserRequestDTO;
-import com.devtective.devtective.dominio.user.UserResponseDTO;
-import com.devtective.devtective.dominio.user.UserWithFullNameDTO;
+import com.devtective.devtective.dominio.user.*;
 import com.devtective.devtective.service.user.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,8 +22,9 @@ public class UserController {
     @Autowired
     private UserService userService;
     @GetMapping("/me")
-    public ResponseEntity<UserResponseDTO> getMe(@AuthenticationPrincipal AppUser me) {
-        return ResponseEntity.ok(convertToDTO(me));
+    public ResponseEntity<CurrentUserResponseDTO> getMe(@AuthenticationPrincipal AppUser me) {
+        CurrentUserResponseDTO response = userService.getCurrentUserResponse(me);
+        return ResponseEntity.ok(response);
     }
 
     //@PreAuthorize("hasRole('ADMIN')")
@@ -82,8 +80,8 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
-    private UserResponseDTO convertToDTO(AppUser user) {
-        Long roleId = (user.getRole() != null ? user.getRole().getId() : null);
-        return new UserResponseDTO(user.getUsername(), user.getEmail(), roleId);
-    }
+    //private CurrentUserResponseDTO convertToDTO(AppUser user) {
+        //Long roleId = (user.getRole() != null ? user.getRole().getId() : null);
+        //return new CurrentUserResponseDTO(user.getUsername(), user.getEmail(), roleId, user.getPublicId());
+    //}
 }

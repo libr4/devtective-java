@@ -197,6 +197,24 @@ public class UserService {
         return response;
     }
 
+    public CurrentUserResponseDTO getCurrentUserResponse(AppUser me) {
+        Worker w = workerRepository.findByUserId(me);
+        String firstName = (
+                w.getFirstName() != null ?
+                        w.getFirstName().trim() :
+                        ""
+                );
+        String lastName = (
+                w.getLastName() != null ?
+                        w.getLastName().trim() :
+                        ""
+        );
+        String displayName = firstName + " " +  lastName;
+        CurrentUserResponseDTO cUserRes = new CurrentUserResponseDTO(me.getUsername(), me.getEmail(),
+                me.getRole().getId(), me.getPublicId(), displayName);
+        return cUserRes;
+    }
+
     public void deleteByUsername(String username) {
         AppUser user = findByUsername(username);
         System.out.println("ABOUT TO DELETE: " + username);

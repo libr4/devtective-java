@@ -24,10 +24,6 @@ public class ProjectMember {
     @Column(name = "workspace_id", nullable = false)
     private Long workspaceId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "workspace_member_id", nullable = false)
-    private WorkspaceMember workspaceMember;
-
     // bellow, getters, setters and constructors only
     public ProjectMember() {
     }
@@ -77,11 +73,4 @@ public class ProjectMember {
         this.workspaceId = workspaceId;
     }
 
-    public WorkspaceMember getWorkspaceMember() {
-        return workspaceMember;
-    }
-
-    public void setWorkspaceMember(WorkspaceMember workspaceMember) {
-        this.workspaceMember = workspaceMember;
-    }
 }

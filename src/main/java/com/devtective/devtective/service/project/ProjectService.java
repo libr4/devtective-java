@@ -1,20 +1,20 @@
 package com.devtective.devtective.service.project;
 
-import com.devtective.devtective.dominio.project.Project;
-import com.devtective.devtective.dominio.project.ProjectRequestDTO;
-import com.devtective.devtective.dominio.project.ProjectResponseDTO;
+import com.devtective.devtective.dominio.project.*;
 import com.devtective.devtective.dominio.user.AppUser;
 import com.devtective.devtective.dominio.worker.Worker;
 import com.devtective.devtective.dominio.worker.WorkerResponseDTO;
+import com.devtective.devtective.dominio.workspace.Workspace;
+import com.devtective.devtective.dominio.workspace.WorkspaceDTO;
 import com.devtective.devtective.exception.NotFoundException;
-import com.devtective.devtective.repository.ProjectMemberRepository;
-import com.devtective.devtective.repository.ProjectRepository;
-import com.devtective.devtective.repository.WorkerRepository;
+import com.devtective.devtective.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -26,6 +26,12 @@ public class ProjectService {
     private WorkerRepository workerRepository;
     @Autowired
     private ProjectMemberRepository projectMemberRepository;
+    @Autowired
+    private WorkspaceRepository workspaceRepository;
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private ProjectLeaderRepository projectLeaderRepository;
 
     public ProjectResponseDTO createProject(ProjectRequestDTO dto) {
         System.out.println("Project service");
@@ -46,6 +52,7 @@ public class ProjectService {
         return response;
     }
 
+    @Transactional
     public ProjectResponseDTO createProject(ProjectRequestDTO dto, AppUser me) {
         Project project = new Project();
 
@@ -64,12 +71,40 @@ public class ProjectService {
                    .orElseThrow(() -> new NotFoundException("Worker with ID: " + dto.createdById() + " not found"));
        }
 
-
         project.setCreatedBy(projectCreator);
 
-        Project newProject = projectRepository.save(project);
+       Workspace wSpace = workspaceRepository.findByPublicId(dto.workspacePublicId());
+
+       project.setWorkspace(wSpace);
+       Project newProject = projectRepository.save(project);
+
+        List<Worker> leaders = workerRepository.findWorkersByUserPublicIdIn(dto.leaderPublicIds());
+        List<Worker> members = workerRepository.findWorkersByUserPublicIdIn(dto.memberPublicIds());
+
+        List<ProjectLeader> projectLeaders = new ArrayList<>();
+        List<ProjectMember> projectMembers = new ArrayList<>();
+
+        for (Worker leader : leaders) {
+            ProjectLeader newLeader = new ProjectLeader();
+            newLeader.setProject(newProject);
+            newLeader.setWorker(leader);
+            newLeader.setWorkspaceId(wSpace.getId());
+            projectLeaders.add(newLeader);
+        }
+        for (Worker member : members) {
+            ProjectMember newMember = new ProjectMember();
+            newMember.setProject(newProject);
+            newMember.setWorker(member);
+            newMember.setWorkspaceId(wSpace.getId());
+            projectMembers.add(newMember);
+        }
+
+        projectLeaderRepository.saveAll(projectLeaders);
+        projectMemberRepository.saveAll(projectMembers);
+
         ProjectResponseDTO response = convertToDTO(newProject);
-        return response;
+
+       return response;
     }
 
     public ProjectResponseDTO updateProject(Long projectId, ProjectRequestDTO dto) {
@@ -93,6 +128,10 @@ public class ProjectService {
         return project;
     }
 
+    public ProjectResponseDTO getProjectResponseByPublicId(UUID publicId) {
+        Project project = projectRepository.findByPublicId(publicId);
+        return convertToDTO(project);
+    }
     public ProjectResponseDTO getProjectResponseById(Long id) {
         Project project = getProjectById(id);
         return convertToDTO(project);
@@ -148,13 +187,17 @@ public class ProjectService {
 
     public ProjectResponseDTO convertToDTO(Project project) {
         return new ProjectResponseDTO(
-                project.getId(),
+                project.getPublicId(),
                 project.getName(),
                 project.getDescription(),
                 project.getUrl(),
                 project.getStartDate(),
                 project.getEndDate(),
-                project.getCreatedBy() != null ? project.getCreatedBy().getFirstName() : null
+                project.getCreatedBy() != null ? project.getCreatedBy().getFirstName() : null,
+                convertToWorkspaceDTO(project.getWorkspace())
         );
+    }
+    private WorkspaceDTO convertToWorkspaceDTO(Workspace w) {
+        return new WorkspaceDTO(w.getPublicId(), w.getName());
     }
 }

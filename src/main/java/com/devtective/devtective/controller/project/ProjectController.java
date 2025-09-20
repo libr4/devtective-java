@@ -13,6 +13,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 
 @RestController
@@ -35,15 +36,14 @@ public class ProjectController {
     }
 
     @PreAuthorize("@perm.projectMemberOrAdmin(authentication, #id)")
-    @GetMapping("/{id}")
-    public ResponseEntity<ProjectResponseDTO> getProject(@PathVariable Long id) {
-        ProjectResponseDTO response = projectService.getProjectResponseById(id);
+    @GetMapping("/{publicId}")
+    public ResponseEntity<ProjectResponseDTO> getProject(@PathVariable UUID publicId) {
+        ProjectResponseDTO response = projectService.getProjectResponseByPublicId(publicId);
         return ResponseEntity.ok(response);
     }
 
     @PostMapping
     public ResponseEntity<ProjectResponseDTO> createProject(@RequestBody ProjectRequestDTO project, @AuthenticationPrincipal AppUser me) {
-        System.out.println("Project controller");
         ProjectResponseDTO created = projectService.createProject(project, me);
         return ResponseEntity.ok(created);
     }

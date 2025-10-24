@@ -113,14 +113,14 @@ ALTER TABLE public.project_member
     REFERENCES public.workspace_member (workspace_id, workspace_member_id) ON DELETE CASCADE;
 
 CREATE TABLE public.user_discoverability (
-  id   SMALLINT PRIMARY KEY,
+  id   BIGINT PRIMARY KEY,
   code VARCHAR(20) UNIQUE NOT NULL
 );
 INSERT INTO public.user_discoverability(id, code) VALUES
   (1,'NONE'), (2,'WORKSPACE'), (3,'PUBLIC_DEMO');
 
 ALTER TABLE public.app_user
-  ADD COLUMN discoverability_id SMALLINT NOT NULL DEFAULT 1
+  ADD COLUMN discoverability_id BIGINT NOT NULL DEFAULT 1
     REFERENCES public.user_discoverability(id);
 
 CREATE INDEX idx_ws_member_ws_worker ON public.workspace_member (workspace_id, worker_id);

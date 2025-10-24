@@ -2,6 +2,7 @@ package com.devtective.devtective.dominio.task;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 public record TaskRequestDTO(
         String title,
@@ -9,22 +10,22 @@ public record TaskRequestDTO(
         Long taskStatusId,
         Long taskPriorityId,
         Long taskTypeId,
-        Long projectId,
+        UUID projectPublicId,
         String technology,
-        Long assignedToId,
-        Long createdById,
+        UUID assignedToId,
+        UUID createdById,
         LocalDateTime deadline,
 
         Long taskNumber
 ) {
-    public TaskRequestDTO withProjectId(Long projectId) {
+    public TaskRequestDTO withProjectId(UUID projectPublicId) {
         return new TaskRequestDTO(
                 title,
                 description,
                 taskStatusId,
                 taskPriorityId,
                 taskTypeId,
-                projectId,
+                projectPublicId,
                 technology,
                 assignedToId,
                 createdById,
@@ -33,15 +34,31 @@ public record TaskRequestDTO(
         );
     }
 
-    // Helper: copy with a new projectId and taskNumber
-    public TaskRequestDTO withProjectIdAndTaskNumber(Long projectId, Long taskNumber) {
+    public TaskRequestDTO withCreatedById(UUID userPublicId) {
         return new TaskRequestDTO(
                 title,
                 description,
                 taskStatusId,
                 taskPriorityId,
                 taskTypeId,
-                projectId,
+                projectPublicId,
+                technology,
+                assignedToId,
+                userPublicId,
+                deadline,
+                taskNumber
+        );
+    }
+
+    // Helper: copy with a new projectId and taskNumber
+    public TaskRequestDTO withProjectPublicIdAndTaskNumber(UUID projectPublicId, Long taskNumber) {
+        return new TaskRequestDTO(
+                title,
+                description,
+                taskStatusId,
+                taskPriorityId,
+                taskTypeId,
+                projectPublicId,
                 technology,
                 assignedToId,
                 createdById,

@@ -33,6 +33,12 @@ public class ProjectMember {
         this.worker = worker;
     }
 
+    public ProjectMember(Project project, Worker worker, Long workspaceId) {
+        this.project = project;
+        this.worker = worker;
+        this.workspaceId = workspaceId;
+    }
+
     public Long getMemberId() {
         return id;
     }

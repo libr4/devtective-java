@@ -99,6 +99,10 @@ public class ProjectService {
             projectMembers.add(newMember);
         }
 
+        ProjectMember pmCreator = new ProjectMember(newProject, projectCreator, wSpace.getId());
+        projectMembers.add(pmCreator);
+        System.out.println("*******PROJECT MEMBERS: " + pmCreator);
+
         projectLeaderRepository.saveAll(projectLeaders);
         projectMemberRepository.saveAll(projectMembers);
 
@@ -125,6 +129,13 @@ public class ProjectService {
     public Project getProjectById(Long id) {
         Project project = projectRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Project with ID: " + id + " not found"));
+        return project;
+    }
+    public Project getProjectByPublicId(UUID publicId) {
+        Project project = projectRepository.findByPublicId(publicId);
+        if (project == null) {
+            throw new NotFoundException("Project with ID: " + publicId + " not found");
+        }
         return project;
     }
 

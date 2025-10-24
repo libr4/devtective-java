@@ -11,6 +11,7 @@ import java.util.UUID;
 
 public interface WorkerRepository extends JpaRepository<Worker, Long> {
         Worker findByUserId(AppUser user);
+        Worker findByUserId_PublicId(UUID publicId);
 
         @Query("""
                SELECT w from Worker w

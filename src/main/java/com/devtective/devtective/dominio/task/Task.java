@@ -19,6 +19,11 @@ public class Task {
     @Column(name = "public_id", nullable = false, unique = true)
     private UUID publicId;
 
+    @PrePersist
+    void ensurePublicId() {
+        if (publicId == null) publicId = UUID.randomUUID();
+    }
+
     @Column(name = "title", nullable = false, length = 255)
     private String title;
 

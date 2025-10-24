@@ -1,7 +1,9 @@
 package com.devtective.devtective.service.task;
 
+import com.devtective.devtective.common.dto.IdNameDTO;
 import com.devtective.devtective.dominio.project.Project;
 import com.devtective.devtective.dominio.task.*;
+import com.devtective.devtective.dominio.user.AppUser;
 import com.devtective.devtective.dominio.worker.Worker;
 import com.devtective.devtective.exception.NotFoundException;
 import com.devtective.devtective.repository.*;
@@ -12,6 +14,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -41,46 +45,54 @@ public class TaskService {
         newTask.setCreatedAt(LocalDateTime.now());
         newTask.setUpdatedAt(LocalDateTime.now());
 
-        Project project = projectRepository.findById(task.projectId())
-                .orElseThrow(() -> new NotFoundException("Project with ID: " + task.projectId() + " not found"));
+        Project project = projectRepository.findByPublicId(task.projectPublicId());
         newTask.setProject(project);
 
         long taskCount = repository.countByProjectId(project.getId());
         newTask.setTaskNumber(taskCount + 1);
 
-        Worker createdBy = workerRepository.findById(task.createdById())
-                .orElseThrow(() -> new NotFoundException("Worker (creator) with ID: " + task.createdById() + " not found"));
+        Worker createdBy = workerRepository.findByUserId_PublicId(task.createdById());
         newTask.setCreatedBy(createdBy);
 
-        Worker assignedTo = workerRepository.findById(task.assignedToId())
-                .orElseThrow(() -> new NotFoundException("Worker with ID: " + task.assignedToId() + " not found"));
+        UUID assignedToId = task.assignedToId() == null ? task.assignedToId() : task.createdById();
+        Worker assignedTo = workerRepository.findByUserId_PublicId(assignedToId);
         newTask.setAssignedTo(assignedTo);
 
-        TaskPriority priority = taskPriorityRepository.findById(task.taskPriorityId())
-                .orElseThrow(() -> new NotFoundException("Task Priority with ID: " + task.taskPriorityId() + " not found"));
+        TaskPriority priority = null;
+        if (task.taskPriorityId() != null) {
+            priority = taskPriorityRepository.findById(task.taskPriorityId())
+                    .orElseThrow(() -> new NotFoundException("Task Priority with ID: " + task.taskPriorityId() + " not found"));
+        }
         newTask.setTaskPriority(priority);
 
-        TaskStatus status = taskStatusRepository.findById(task.taskStatusId())
-                .orElseThrow(() -> new NotFoundException("Task Status with ID: " + task.taskStatusId() + " not found"));
+        TaskStatus status = null;
+        if (task.taskStatusId() != null) {
+            status = taskStatusRepository.findById(task.taskStatusId())
+                    .orElseThrow(() -> new NotFoundException("Task Status with ID: " + task.taskStatusId() + " not found"));
+        }
         newTask.setTaskStatus(status);
 
-        TaskType type = taskTypeRepository.findById(task.taskTypeId())
-                .orElseThrow(() -> new NotFoundException("Task Type with ID: " + task.taskTypeId() + " not found"));
+        TaskType type = null;
+        if (task.taskTypeId() != null) {
+            type = taskTypeRepository.findById(task.taskTypeId())
+                    .orElseThrow(() -> new NotFoundException("Task Type with ID: " + task.taskTypeId() + " not found"));
+        }
         newTask.setTaskType(type);
 
         return repository.save(newTask);
     }
 
-    public TaskResponseDTO createTaskResponseDTO(TaskRequestDTO dto) {
-        Task task = createTask(dto);
-        return convertToDTO(task);
-
+    public TaskResponseDTO createTaskResponseDTO(AppUser me, TaskRequestDTO dto) {
+        TaskRequestDTO withCreatedBy = dto.withCreatedById(me.getPublicId());
+        Task task = createTask(withCreatedBy);
+        TaskResponseDTO response =  convertToDTO(task);
+        return response;
     }
 
     @Transactional
     public Task updateTask(TaskRequestDTO taskRequestDTO) {
 
-        Project project = projectRepository.findById(taskRequestDTO.projectId()).orElseThrow(() -> new NotFoundException("Project with ID: " + taskRequestDTO.projectId() + " not found"));
+        Project project = projectRepository.findByPublicId(taskRequestDTO.projectPublicId());
 
         Task task = repository.findByProjectAndTaskNumber(project, taskRequestDTO.taskNumber());
         if (task == null) return null;
@@ -114,13 +126,13 @@ public class TaskService {
         }
 
         if (taskRequestDTO.assignedToId() != null) {
-            workerRepository.findById(taskRequestDTO.assignedToId())
-                    .ifPresent(task::setAssignedTo);
+            Worker assignedTo = workerRepository.findByUserId_PublicId(taskRequestDTO.assignedToId());
+            task.setAssignedTo(assignedTo);
         }
 
         if (taskRequestDTO.createdById() != null) {
-            workerRepository.findById(taskRequestDTO.createdById())
-                    .ifPresent(task::setCreatedBy);
+            Worker createdBy = workerRepository.findByUserId_PublicId(taskRequestDTO.createdById());
+            task.setCreatedBy(createdBy);
         }
 
         return repository.save(task);
@@ -146,11 +158,12 @@ public class TaskService {
 
         }
 
-        return convertToDTO(task);
+        TaskResponseDTO response =  convertToDTO(task);
+        return response;
     }
 
-    public void deleteByProjectIdAndTaskNumber(Long projectId, Long taskNumber) {
-        Project project = projectRepository.findById(projectId).orElseThrow(() -> new NotFoundException("Project with ID: " + projectId + " not found"));
+    public void deleteByProjectIdAndTaskNumber(UUID projectId, Long taskNumber) {
+        Project project = projectRepository.findByPublicId(projectId);
 
         Task task =  repository.findByProjectAndTaskNumber(project, taskNumber);
         if (task == null)  {
@@ -160,8 +173,8 @@ public class TaskService {
         repository.delete(task);
     }
 
-    public List<TaskResponseDTO> listByProject(Long projectId) {
-        List<Task> tasks = repository.findByProjectId(projectId);
+    public List<TaskResponseDTO> listByProject(UUID projectPublicId) {
+        List<Task> tasks = repository.findByProjectPublicId(projectPublicId);
         return tasks.stream().map(this::convertToDTO).toList();
     }
 
@@ -201,6 +214,22 @@ public class TaskService {
                 task.getDeadline(),
                 task.getTaskNumber()
         );
+    }
+
+    @Transactional(readOnly = true)
+    public List<IdNameDTO> getTypes() {
+        return taskTypeRepository.findAllByOrderByNameAsc()
+                .stream().map(p -> new IdNameDTO(p.id(), p.name())).toList();
+    }
+    @Transactional(readOnly = true)
+    public List<IdNameDTO> getPriorities() {
+        return taskPriorityRepository.findAllByOrderByNameAsc()
+                .stream().map(p -> new IdNameDTO(p.id(), p.name())).toList();
+    }
+    @Transactional(readOnly = true)
+    public List<IdNameDTO> getStatuses() {
+        return taskStatusRepository.findAllByOrderByNameAsc()
+                .stream().map(p -> new IdNameDTO(p.id(), p.name())).toList();
     }
 
 }

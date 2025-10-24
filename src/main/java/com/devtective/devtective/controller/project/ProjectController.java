@@ -35,9 +35,10 @@ public class ProjectController {
         return ResponseEntity.ok(projects);
     }
 
-    @PreAuthorize("@perm.projectMemberOrAdmin(authentication, #id)")
+    @PreAuthorize("@perm.projectMemberOrAdmin(authentication, #publicId)")
     @GetMapping("/{publicId}")
     public ResponseEntity<ProjectResponseDTO> getProject(@PathVariable UUID publicId) {
+        System.out.println("PUBLIC PROJECT ID: " + publicId);
         ProjectResponseDTO response = projectService.getProjectResponseByPublicId(publicId);
         return ResponseEntity.ok(response);
     }

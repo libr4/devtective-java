@@ -1,0 +1,40 @@
+# Java / Maven build artifacts
+target
+**/target
+
+# IDE / editor files
+.idea
+.vscode
+*.iml
+
+# Git
+.git
+.gitignore
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Node / frontend (if present)
+node_modules
+npm-debug.log
+yarn-error.log
+
+# Logs and temporary
+*.log
+tmp
+temp
+
+# Local environment files / secrets
+.env
+*.env
+secrets/
+*.key
+*.pem
+
+# Docker
+.dockerignore
+
+# Others
+dist
+build

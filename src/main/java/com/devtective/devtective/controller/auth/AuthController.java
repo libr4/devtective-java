@@ -63,6 +63,7 @@ public class AuthController {
                 .secure(true)  // Set to false for local development
                 .path("/")
                 .maxAge(Duration.ofDays(7))
+                .sameSite("None")
                 .build();
 
         AppUser loggedUser = userService.findByUsername(user.username());

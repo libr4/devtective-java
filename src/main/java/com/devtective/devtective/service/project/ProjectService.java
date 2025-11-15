@@ -6,8 +6,11 @@ import com.devtective.devtective.dominio.worker.Worker;
 import com.devtective.devtective.dominio.worker.WorkerResponseDTO;
 import com.devtective.devtective.dominio.workspace.Workspace;
 import com.devtective.devtective.dominio.workspace.WorkspaceDTO;
+import com.devtective.devtective.dominio.workspace.WorkspaceMember;
 import com.devtective.devtective.exception.NotFoundException;
 import com.devtective.devtective.repository.*;
+import com.devtective.devtective.service.CRUDService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,7 +32,7 @@ public class ProjectService {
     @Autowired
     private WorkspaceRepository workspaceRepository;
     @Autowired
-    private UserRepository userRepository;
+    private WorkspaceMemberRepository workspaceMemberRepository;
     @Autowired
     private ProjectLeaderRepository projectLeaderRepository;
 
@@ -48,7 +51,7 @@ public class ProjectService {
         project.setCreatedBy(projectCreator);
 
         Project newProject = projectRepository.save(project);
-        ProjectResponseDTO response = convertToDTO(newProject);
+        ProjectResponseDTO response = convertToDTO(newProject, null);
         return response;
     }
 
@@ -106,7 +109,10 @@ public class ProjectService {
         projectLeaderRepository.saveAll(projectLeaders);
         projectMemberRepository.saveAll(projectMembers);
 
-        ProjectResponseDTO response = convertToDTO(newProject);
+        String linkCode = newProject.getPublicId().toString();
+        System.out.println("LINKCODE: "+linkCode);
+
+        ProjectResponseDTO response = convertToDTO(newProject, linkCode);
 
        return response;
     }
@@ -118,7 +124,7 @@ public class ProjectService {
         project.setName(dto.name());
         project.setDescription(dto.description());
         Project updatedProject = projectRepository.save(project);
-        return convertToDTO(updatedProject);
+        return convertToDTO(updatedProject, null);
     }
 
     public List<ProjectResponseDTO> getAllProjects() {
@@ -141,11 +147,11 @@ public class ProjectService {
 
     public ProjectResponseDTO getProjectResponseByPublicId(UUID publicId) {
         Project project = projectRepository.findByPublicId(publicId);
-        return convertToDTO(project);
+        return convertToDTO(project, null);
     }
     public ProjectResponseDTO getProjectResponseById(Long id) {
         Project project = getProjectById(id);
-        return convertToDTO(project);
+        return convertToDTO(project, null);
     }
 
     public void deleteProject(Long id) {
@@ -192,11 +198,29 @@ public class ProjectService {
 
     public List<ProjectResponseDTO> convertToDTOList(List<Project> projects) {
         return projects.stream()
-                .map(this::convertToDTO)
+                .map((project) -> convertToDTO(project, null))
                 .collect(Collectors.toList());
     }
 
-    public ProjectResponseDTO convertToDTO(Project project) {
+    public ProjectResponseDTO joinProject(UUID projectPublicId, AppUser user) {
+        Project currentProject = projectRepository.findByPublicId(projectPublicId);
+        if (currentProject == null) throw new NotFoundException("Cannot find projectId");
+        Worker currentWorker = workerRepository.findByUserId_PublicId(user.getPublicId());
+        if (currentWorker == null) throw new NotFoundException("Cannot find currentWorker");
+        Workspace projectWorkspace = currentProject.getWorkspace();
+        if (projectWorkspace == null) throw new NotFoundException("Cannot find projectWorkspace");
+        if (projectMemberRepository.existsByProjectPublicIdAndWorkerId(projectPublicId, currentWorker.getId())) {
+            return convertToDTO(currentProject, null);
+        }
+        if (!workspaceMemberRepository.existsByWorkspaceIdAndWorkerId(projectWorkspace.getId(), currentWorker.getId())) {
+            workspaceMemberRepository.save(new WorkspaceMember(projectWorkspace, currentWorker));
+        }
+        ProjectMember pm = new ProjectMember(currentProject, currentWorker, projectWorkspace.getId());
+        projectMemberRepository.save(pm);
+        return convertToDTO(currentProject, null);
+    }
+
+    public ProjectResponseDTO convertToDTO(Project project, String linkCode) {
         return new ProjectResponseDTO(
                 project.getPublicId(),
                 project.getName(),
@@ -205,10 +229,15 @@ public class ProjectService {
                 project.getStartDate(),
                 project.getEndDate(),
                 project.getCreatedBy() != null ? project.getCreatedBy().getFirstName() : null,
-                convertToWorkspaceDTO(project.getWorkspace())
+                convertToWorkspaceDTO(project.getWorkspace()),
+                linkCode
         );
     }
     private WorkspaceDTO convertToWorkspaceDTO(Workspace w) {
         return new WorkspaceDTO(w.getPublicId(), w.getName());
+    }
+
+    private boolean isNull(Object obj) {
+        return obj == null;
     }
 }

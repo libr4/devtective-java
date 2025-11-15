@@ -1,18 +1,12 @@
 package com.devtective.devtective.controller.workspace;
 
 import com.devtective.devtective.dominio.user.AppUser;
-import com.devtective.devtective.dominio.user.UserRequestDTO;
-import com.devtective.devtective.dominio.user.UserResponseDTO;
 import com.devtective.devtective.dominio.workspace.Workspace;
 import com.devtective.devtective.dominio.workspace.WorkspaceDTO;
-import com.devtective.devtective.service.user.UserService;
 import com.devtective.devtective.service.workspace.WorkspaceService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,7 +22,6 @@ public class WorkspaceController {
     @GetMapping("/users/{userPublicId}")
     public ResponseEntity<List<WorkspaceDTO>> getWorkspacesByUserPublicId(
             @PathVariable("userPublicId") UUID userPublicId) {
-
         List<Workspace> workspaces = workspaceService.getWorkspacesByUserPublicId(userPublicId);
         List<WorkspaceDTO> response = workspaces.stream().map(WorkspaceDTO::from).toList();
         return ResponseEntity.ok(response);
@@ -43,8 +36,8 @@ public class WorkspaceController {
     @GetMapping("/me")
     public ResponseEntity<List<WorkspaceDTO>> getMyWorkspaces(
             @AuthenticationPrincipal AppUser me) {
-
         List<Workspace> workspaces = workspaceService.getWorkspacesByUserPublicId(me.getPublicId());
         return ResponseEntity.ok(workspaces.stream().map(WorkspaceDTO::from).toList());
     }
+
 }

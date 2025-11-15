@@ -46,6 +46,7 @@ public class ProjectController {
     @PostMapping
     public ResponseEntity<ProjectResponseDTO> createProject(@RequestBody ProjectRequestDTO project, @AuthenticationPrincipal AppUser me) {
         ProjectResponseDTO created = projectService.createProject(project, me);
+        System.out.println("PROJECT  CREATED: "+created);
         return ResponseEntity.ok(created);
     }
 

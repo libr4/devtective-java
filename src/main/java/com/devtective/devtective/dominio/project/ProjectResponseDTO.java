@@ -13,5 +13,6 @@ public record ProjectResponseDTO(
         LocalDate startDate,
         LocalDate endDate,
         String createdByName,
-        WorkspaceDTO workspace
+        WorkspaceDTO workspace,
+        String linkCode
 ) {}

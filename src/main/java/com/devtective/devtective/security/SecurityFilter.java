@@ -6,6 +6,8 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+
+import org.hibernate.validator.internal.util.stereotypes.Lazy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -15,9 +17,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 @Component
@@ -25,7 +24,9 @@ public class SecurityFilter extends OncePerRequestFilter {
     @Autowired
     TokenService tokenService;
     @Autowired
+    @Lazy
     UserRepository userRepository;
+    
 
     private static final List<String> PUBLIC_ROUTES = List.of(
             "/api/v1/auth/login",
@@ -74,10 +75,4 @@ public class SecurityFilter extends OncePerRequestFilter {
         String q = request.getParameter("token");
         return (q != null && !q.isBlank()) ? q : null;
     }
-
-    //private String recoverToken(HttpServletRequest request){
-    //    var authHeader = request.getHeader("Authorization");
-    //    if(authHeader == null) return null;
-    //    return authHeader.replace("Bearer ", "");
-    //}
 }

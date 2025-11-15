@@ -8,6 +8,8 @@ import com.devtective.devtective.exception.ConflictException;
 import com.devtective.devtective.exception.NotFoundException;
 import com.devtective.devtective.repository.*;
 import com.devtective.devtective.service.worker.WorkerService;
+import com.devtective.devtective.validation.UserValidationService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -38,7 +40,9 @@ public class UserService {
     @Autowired
     private PositionRepository positionRepository;
     @Autowired
-    UserDiscoverabilityRepository userDiscoverabilityRepository;
+    private UserDiscoverabilityRepository userDiscoverabilityRepository;
+    @Autowired
+    private UserValidationService userValidationService;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -48,15 +52,8 @@ public class UserService {
     }
     public AppUser createUser(UserRequestDTO data) {
 
-        AppUser userExists = repository.findByUsername(data.username());
-        if (userExists != null) {
-            throw new ConflictException("Username already exists: " + data.username());
-        }
 
-        AppUser emailExists = repository.findByEmail(data.email());
-        if (emailExists != null) {
-            throw new ConflictException("Email already exists: " + data.email());
-        }
+        userValidationService.validateCreateUser(data);
 
         AppUser user = new AppUser();
 

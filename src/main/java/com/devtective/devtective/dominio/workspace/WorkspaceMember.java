@@ -2,12 +2,14 @@ package com.devtective.devtective.dominio.workspace;
 
 import com.devtective.devtective.dominio.worker.Worker;
 import jakarta.persistence.*;
+import lombok.RequiredArgsConstructor;
 
 import java.time.Instant;
 import java.util.UUID;
 
 @Entity
 @Table(name = "workspace_member", uniqueConstraints = @UniqueConstraint(name="uq_ws_member", columnNames={"workspace_id","worker_id"}))
+@RequiredArgsConstructor
 public class WorkspaceMember {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -28,6 +30,11 @@ public class WorkspaceMember {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "worker_id", nullable = false)
     private Worker worker;
+
+    public WorkspaceMember(Workspace workspace, Worker worker) {
+        this.workspace = workspace;
+        this.worker = worker;
+    }
 
     @Column(name = "joined_at", nullable = false)
     private Instant joinedAt = Instant.now();

@@ -2,6 +2,7 @@ package com.devtective.devtective.service.project;
 
 import com.devtective.devtective.dominio.project.MemberDTO;
 import com.devtective.devtective.dominio.project.ProjectMemberRow;
+import com.devtective.devtective.dominio.project.ProjectResponseDTO;
 import com.devtective.devtective.repository.ProjectMemberRepository;
 import org.springframework.stereotype.Service;
 
@@ -51,4 +52,6 @@ public class ProjectMemberService {
             default -> MemberDTO.InvitationStatus.REMOVED;
         };
     }
+
+
 }

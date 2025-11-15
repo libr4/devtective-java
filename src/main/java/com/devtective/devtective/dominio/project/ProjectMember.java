@@ -3,9 +3,11 @@ package com.devtective.devtective.dominio.project;
 import com.devtective.devtective.dominio.worker.Worker;
 import com.devtective.devtective.dominio.workspace.WorkspaceMember;
 import jakarta.persistence.*;
+import lombok.RequiredArgsConstructor;
 
 @Entity
 @Table(name = "project_member")
+@RequiredArgsConstructor
 public class ProjectMember {
 
     @Id
@@ -23,10 +25,6 @@ public class ProjectMember {
 
     @Column(name = "workspace_id", nullable = false)
     private Long workspaceId;
-
-    // bellow, getters, setters and constructors only
-    public ProjectMember() {
-    }
 
     public ProjectMember(Project project, Worker worker) {
         this.project = project;

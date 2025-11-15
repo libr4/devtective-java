@@ -1,5 +1,5 @@
 # ---------- Build stage ----------
-FROM eclipse-temurin:21-jdk AS build
+FROM eclipse-temurin:25-jdk AS build
 WORKDIR /app
 
 COPY .mvn/ .mvn/
@@ -11,7 +11,8 @@ COPY src/ src/
 # RUN ./mvnw -B clean package -DskipTests
 RUN ./mvnw -B clean package -Dmaven.test.skip=true
 
-FROM eclipse-temurin:21-jre
+# ---------- Runtime stage ----------
+FROM eclipse-temurin:25-jre
 WORKDIR /app
 
 COPY --from=build /app/target/*.jar /app/app.jar
@@ -22,7 +23,4 @@ USER appuser
 ENV JAVA_OPTS=""
 EXPOSE 8080
 
-ENTRYPOINT ["sh","-c","java $JAVA_OPTS -Dserver.port=${PORT:-8080} -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -jar /app/app.jar"]
-# EXPOSE 8080
-
-# ENTRYPOINT ["java","-XX:+UseContainerSupport","-XX:MaxRAMPercentage=75.0","-jar","/app/app.jar"]
+ENTRYPOINT ["sh","-c","java $JAVA_OPTS -Dserver.port=${PORT:-8080} -XX:MaxRAMPercentage=75.0 -jar /app/app.jar"]

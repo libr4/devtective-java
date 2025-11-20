@@ -1,6 +1,7 @@
 package com.devtective.devtective.service.auth;
 
 import com.devtective.devtective.dominio.user.AppUser;
+import com.devtective.devtective.exception.NotFoundException;
 import com.devtective.devtective.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -15,8 +16,8 @@ public class AuthorizationService implements UserDetailsService {
     UserRepository repository;
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        AppUser user =  repository.findByUsername(username);
-        System.out.println("USER: " + user.getUsername() + " PASS:" + user.getPassword());
+        AppUser user =  repository.findByUsername(username)
+            .orElseThrow(() -> new NotFoundException("Wrong credentials!"));
         return user;
     }
 }

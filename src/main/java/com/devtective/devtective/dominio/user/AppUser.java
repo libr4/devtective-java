@@ -157,5 +157,21 @@ public class AppUser implements UserDetails {
     public void setDiscoverability(UserDiscoverability discoverability) {
         this.discoverability = discoverability;
     }
+
+    public static AppUser create(
+        String username,
+        String email,
+        String hashedPassword, 
+        UserDiscoverability defaultDisc, 
+        Role defaultRole) {
+
+        AppUser user = new AppUser();
+        user.username = username;
+        user.email = email;
+        user.discoverability = defaultDisc;
+        user.role = defaultRole;
+        user.passwordHash = hashedPassword;
+        return user;
+    }
 }
 

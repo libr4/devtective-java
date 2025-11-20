@@ -11,9 +11,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/users")
@@ -57,9 +55,10 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
     @PutMapping("/me")
+    @PreAuthorize("@perm.selfOrAdmin(authentication)")
     public ResponseEntity<UserResponseDTO> updateMe(@AuthenticationPrincipal AppUser principal,
                                                     @Valid @RequestBody UserRequestDTO user) {
-        String username = user.username();
+        String username = principal.getUsername();
         UserResponseDTO response = userService.updateOwnUser(user, username);
         return ResponseEntity.ok(response);
     }

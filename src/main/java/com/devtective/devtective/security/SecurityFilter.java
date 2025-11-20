@@ -1,5 +1,6 @@
 package com.devtective.devtective.security;
 
+import com.devtective.devtective.exception.NotFoundException;
 import com.devtective.devtective.repository.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -45,7 +46,8 @@ public class SecurityFilter extends OncePerRequestFilter {
         if(token != null){
             var login = tokenService.validateToken(token);
             //System.out.println("Extracted username: " + login);
-            UserDetails user = userRepository.findByUsername(login);
+            UserDetails user = userRepository.findByUsername(login)
+                .orElseThrow(() -> new NotFoundException("Wrong credentials!"));
 
             var authentication = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
             SecurityContextHolder.getContext().setAuthentication(authentication);

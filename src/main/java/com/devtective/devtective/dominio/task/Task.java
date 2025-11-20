@@ -184,4 +184,15 @@ public class Task {
     public UUID getPublicId() {
         return publicId;
     }
+
+    @Override
+    public String toString() {
+        return "Task{" +
+            "id=" + id +
+            ", title='" + title + '\'' +
+            ", priority=" + taskPriority +
+            ", status=" + taskStatus +
+            ", type=" + taskType +
+            '}';
+    }
 }

@@ -50,7 +50,8 @@ public class WorkspaceService {
         Workspace newWs = new Workspace(data.name().trim());
         Workspace w = workspaceRepository.save(newWs);
 
-        Worker worker = workerRepository.findByUserId(me);
+        Worker worker = workerRepository.findByUserId(me)
+            .orElseThrow(() -> new NotFoundException("Worker not found for user: " + me.getUsername()));
         if (worker == null) {
             throw new NotFoundException("User not found!");
         }

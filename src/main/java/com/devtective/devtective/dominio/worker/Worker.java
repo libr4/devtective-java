@@ -91,4 +91,16 @@ public class Worker {
     public void setHireDate(Date hireDate) {
         this.hireDate = hireDate;
     }
+    public static Worker create(
+        String firstName,
+        String lastName,
+        AppUser newUser,
+        Position defaultPosition) {
+            Worker newWorker = new Worker();
+            newWorker.firstName = firstName;
+            newWorker.lastName = lastName;
+            newWorker.userId = newUser;
+            newWorker.positionId = defaultPosition;
+            return newWorker;
+    }
 }

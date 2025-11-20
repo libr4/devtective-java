@@ -4,11 +4,13 @@ import com.devtective.devtective.dominio.auth.LoginResponseDTO;
 import com.devtective.devtective.dominio.user.AppUser;
 import com.devtective.devtective.dominio.user.UserRequestDTO;
 import com.devtective.devtective.dominio.user.UserResponseDTO;
+import com.devtective.devtective.exception.NotFoundException;
 import com.devtective.devtective.repository.UserRepository;
 import com.devtective.devtective.security.TokenService;
 import com.devtective.devtective.service.user.UserService;
-import com.devtective.devtective.validation.OnLogin;
-import com.devtective.devtective.validation.OnRegister;
+import com.devtective.devtective.service.user.validation.OnLogin;
+import com.devtective.devtective.service.user.validation.OnRegister;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
@@ -47,7 +49,8 @@ public class AuthController {
 
         UsernamePasswordAuthenticationToken usernamePassword = new UsernamePasswordAuthenticationToken(user.username(), user.password());
 
-        AppUser loginUser = userRepository.findByUsername(user.username());
+        AppUser loginUser = userRepository.findByUsername(user.username())
+            .orElseThrow(() -> new NotFoundException("Wrong credentials!"));
 
         if (loginUser == null) {
             throw new BadCredentialsException("Invalid username or password");
@@ -78,5 +81,18 @@ public class AuthController {
     public ResponseEntity<UserResponseDTO> createUser(@RequestBody @Validated(OnRegister.class) UserRequestDTO data) {
         UserResponseDTO response = userService.register(data);
         return ResponseEntity.ok(response);
+    }
+    @PostMapping("/logout")
+    public ResponseEntity<UserResponseDTO> logout() {
+        ResponseCookie cookie = ResponseCookie.from("jwt", "")
+                .httpOnly(true)
+                .secure(true)  // Set to false for local development
+                .path("/")
+                .maxAge(0)
+                .sameSite("None")
+                .build();
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .build();
     }
 }

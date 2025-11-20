@@ -1,9 +1,17 @@
 package com.devtective.devtective.dominio.user;
 
-public class RoleConstants {
+public enum RoleConstants {
+    USER("USER"),
+    ADMIN("ADMIN");
 
-    public static final long ADMIN = 1;
-    public static final long OWNER_USER = 2;
-    public static final long USER = 3;
-    public static final long READER = 4;
+    private final String displayName;
+
+    RoleConstants(String displayName) {
+        this.displayName = displayName;
+    }
+
+    @Override
+    public String toString() {
+        return displayName;
+    }   
 }

@@ -7,10 +7,11 @@ import org.springframework.data.jpa.repository.Query;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface WorkerRepository extends JpaRepository<Worker, Long> {
-        Worker findByUserId(AppUser user);
+        Optional<Worker> findByUserId(AppUser user);
         Worker findByUserId_PublicId(UUID publicId);
 
         @Query("""

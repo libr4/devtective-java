@@ -1,16 +1,15 @@
 package com.devtective.devtective.dominio.task;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 public record TaskResponseDTO(
         String title,
         String description,
-        String taskStatus,
-        String taskPriorityName,
-        String taskTypeName,
+        String status,
+        String priority,
+        String type,
         String projectName,
-        String technologyName,
+        String technology,
         String assignedToFullName,
         String createdByIdFullName,
         LocalDateTime deadline,

@@ -1,7 +1,8 @@
 package com.devtective.devtective.dominio.user;
 
-import com.devtective.devtective.validation.OnLogin;
-import com.devtective.devtective.validation.OnRegister;
+import com.devtective.devtective.service.user.validation.OnLogin;
+import com.devtective.devtective.service.user.validation.OnRegister;
+
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

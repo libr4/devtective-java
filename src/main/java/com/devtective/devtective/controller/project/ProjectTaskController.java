@@ -1,7 +1,6 @@
 package com.devtective.devtective.controller.project;
 
 import com.devtective.devtective.dominio.project.Project;
-import com.devtective.devtective.dominio.task.Task;
 import com.devtective.devtective.dominio.task.TaskRequestDTO;
 import com.devtective.devtective.dominio.task.TaskResponseDTO;
 import com.devtective.devtective.dominio.user.AppUser;
@@ -11,11 +10,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/projects/{projectPublicId}/tasks")
@@ -26,8 +26,10 @@ public class ProjectTaskController {
 
     @GetMapping
     @PreAuthorize("@perm.canReadOrCreateTask(authentication, #projectPublicId)")
-    public ResponseEntity<List<TaskResponseDTO>> listByProject(@PathVariable UUID projectPublicId) {
-        return ResponseEntity.ok(taskService.listByProject(projectPublicId));
+    public ResponseEntity<List<TaskResponseDTO>> listByProject(@PathVariable UUID projectPublicId, 
+            @RequestParam MultiValueMap<String, String> params) {
+        System.out.println("Query params: " + params);
+        return ResponseEntity.ok(taskService.listByProjectAndParams(projectPublicId, params));
     }
 
     @PostMapping

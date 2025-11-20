@@ -3,6 +3,7 @@ package com.devtective.devtective.service.permission;
 import com.devtective.devtective.dominio.project.Project;
 import com.devtective.devtective.dominio.user.AppUser;
 import com.devtective.devtective.dominio.worker.Worker;
+import com.devtective.devtective.exception.NotFoundException;
 import com.devtective.devtective.repository.ProjectLeaderRepository;
 import com.devtective.devtective.repository.ProjectMemberRepository;
 import com.devtective.devtective.repository.ProjectRepository;
@@ -31,19 +32,22 @@ public class PermissionService {
                 principal.getAuthorities().stream()
                         .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
     }
+    public boolean selfOrAdmin(Authentication auth) {
+        var principal = (AppUser) auth.getPrincipal();
+        return selfOrAdmin(auth, principal.getUsername());
+    }
 
     public boolean projectMemberOrAdmin(Authentication auth, UUID publicProjectId) {
         if (!isAuth(auth)) return false;
         if (isAdmin(auth)) return true;
         AppUser me = (AppUser) auth.getPrincipal();
-        Worker worker = workerRepository.findByUserId(me);
+        Worker worker = workerRepository.findByUserId(me)
+            .orElseThrow(() -> new NotFoundException("Worker not found for user: " + me.getUsername()));
         if (worker == null) return false;
         Long wid = worker.getId();
         Project p = projectRepository.findByPublicId(publicProjectId);
         if (p == null) return false;
-        // owner
         if (p.getCreatedBy() != null && p.getCreatedBy().getId() == wid) return true;
-        // member
         return projectMemberRepository.existsByProjectPublicIdAndWorkerId(publicProjectId, wid);
     }
 
@@ -51,7 +55,8 @@ public class PermissionService {
         if (!isAuth(auth)) return false;
         if (isAdmin(auth)) return true;
         AppUser me = (AppUser) auth.getPrincipal();
-        Worker worker = workerRepository.findByUserId(me);
+        Worker worker = workerRepository.findByUserId(me)
+            .orElseThrow(() -> new NotFoundException("Worker not found for user: " + me.getUsername()));
         if (worker == null) return false;
         Long wid = worker.getId();
         Project p = projectRepository.findById(projectId).orElse(null);
@@ -93,7 +98,8 @@ public class PermissionService {
     }
     private Worker currentWorker(Authentication auth) {
         AppUser principal = (AppUser) auth.getPrincipal();
-        return workerRepository.findByUserId(principal);
+        return workerRepository.findByUserId(principal)
+            .orElseThrow(() -> new NotFoundException("Worker not found for user: " + principal.getUsername()));
     }
 
     private boolean isProjectOwner(Long workerId, UUID projectPublicId) {
@@ -108,5 +114,4 @@ public class PermissionService {
     private boolean isProjectMember(Long workerId, UUID projectPublicId) {
         return projectMemberRepository.existsByProjectPublicIdAndWorkerId(projectPublicId, workerId);
     }
-
 }

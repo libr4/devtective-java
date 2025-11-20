@@ -11,8 +11,10 @@ import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.MultiValueMap;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -175,6 +177,24 @@ public class TaskService {
 
     public List<TaskResponseDTO> listByProject(UUID projectPublicId) {
         List<Task> tasks = repository.findByProjectPublicId(projectPublicId);
+        return tasks.stream().map(this::convertToDTO).toList();
+    }
+
+    public List<TaskResponseDTO> listByProjectAndParams(UUID projectPublicId, MultiValueMap<String, String> params) {
+        String q =params.getFirst("q");
+        q = q != null ? "%" + q + "%" : null;
+        List<String> usernames = params.get("assignedTo");
+        List<String> priorities = params.get("priority");
+        List<String> types = params.get("type");
+        List<String> statuses = params.get("status");
+
+        List<Task> tasks = repository.findByProjectPublicIdAndParams(
+            projectPublicId, 
+            q,
+            usernames, 
+            types, 
+            priorities, 
+            statuses);
         return tasks.stream().map(this::convertToDTO).toList();
     }
 

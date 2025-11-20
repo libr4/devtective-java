@@ -67,7 +67,8 @@ public class ProjectService {
        Long createdById = dto.createdById();
        Worker projectCreator = null;
        if (createdById == null) {
-           projectCreator = workerRepository.findByUserId(me);
+           projectCreator = workerRepository.findByUserId(me)
+                                .orElseThrow(() -> new NotFoundException("Worker for user ID: " + me.getUsername() + " not found"));
        }
        else {
            projectCreator = workerRepository.findById(createdById)
@@ -168,7 +169,8 @@ public class ProjectService {
             return convertToDTOList(projectRepository.findAll());
         }
 
-        Worker worker = workerRepository.findByUserId(me);
+        Worker worker = workerRepository.findByUserId(me)
+                                .orElseThrow(() -> new NotFoundException("Worker for user ID: " + me.getUsername() + " not found"));
         if (worker == null) {
             return List.of();
         }
